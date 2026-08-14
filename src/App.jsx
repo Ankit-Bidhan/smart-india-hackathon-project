@@ -8,6 +8,7 @@ import AIGuidePage from "./pages/AIGuidePage";
 import Guides from "./pages/Guides";
 import Vendors from "./pages/Vendors";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import PlaceDetails from "./pages/PlaceDetails";
 
 function App() {
@@ -45,6 +46,11 @@ function App() {
           <Route
             path="/login"
             element={<Login />}
+          />
+
+          <Route
+            path="/profile"
+            element={<Profile />}
           />
 
           <Route
