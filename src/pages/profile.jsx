@@ -553,7 +553,7 @@ function Profile() {
                         </section>
 
                     )}
-
+//problem fixed
                 {profile?.role === "admin" && (
                     <section className="verified-guide-card">
                         <div className="verified-icon">
