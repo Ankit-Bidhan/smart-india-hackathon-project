@@ -503,48 +503,34 @@ function Profile() {
                                         </button>
 
                                     </>
-
                                 ) : (
-
                                     <button
                                         className="guide-apply-btn"
                                         onClick={() =>
                                             setShowApplication(true)
                                         }
                                     >
-                                        Become a Local Guide →
+                                       Become a Local Guide →
                                     </button>
-
                                 )}
-
                             </div>
-
                         </section>
-
                     )}
 
-
                 {/* VERIFIED GUIDE */}
-
                 {profile?.role ===
                     "localGuide" && (
-
                         <section className="verified-guide-card">
-
                             <div className="verified-icon">
                                 ✓
                             </div>
-
                             <div>
-
                                 <span className="guide-label">
                                     VERIFIED CONTRIBUTOR
                                 </span>
-
                                 <h2>
                                     You're a Verified Local Guide!
                                 </h2>
-
                                 <p>
                                     You can now contribute local
                                     knowledge and suggest hidden
@@ -567,6 +553,34 @@ function Profile() {
                         </section>
 
                     )}
+
+                {profile?.role === "admin" && (
+                    <section className="verified-guide-card">
+                        <div className="verified-icon">
+                            🛡️
+                        </div>
+                        <div>
+                            <span className="guide-label">
+                                ADMINISTRATOR
+                            </span>
+                            <h2>
+                                TravelEase Admin
+                            </h2>
+                            <p>
+                                Manage verified contributors and
+                                review community submissions.
+                            </p>
+                            <button
+                                className="guide-apply-btn"
+                                onClick={() =>
+                                    navigate("/admin")
+                                }
+                            >
+                                🛡️ Open Admin Dashboard →
+                            </button>
+                        </div>
+                    </section>
+                )}
 
 
             </div>

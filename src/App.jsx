@@ -7,8 +7,10 @@ import Explore from "./pages/Explore";
 import AIGuidePage from "./pages/AIGuidePage";
 import Guides from "./pages/Guides";
 import Vendors from "./pages/Vendors";
+import AddHiddenGem from "./pages/AddHiddenGem";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 import PlaceDetails from "./pages/PlaceDetails";
 
 function App() {
@@ -51,6 +53,16 @@ function App() {
           <Route
             path="/profile"
             element={<Profile />}
+          />
+
+          <Route
+            path="/admin"
+            element={<AdminDashboard />}
+          />
+
+          <Route
+            path="/add-hidden-gem"
+            element={<AddHiddenGem />}
           />
 
           <Route
