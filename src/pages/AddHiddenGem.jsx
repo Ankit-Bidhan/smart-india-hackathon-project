@@ -10,13 +10,7 @@ import {
     serverTimestamp,
 } from "firebase/firestore";
 
-import {
-    ref,
-    uploadBytes,
-    getDownloadURL,
-} from "firebase/storage";
-
-import { auth, db, storage } from "../firebase";
+import { auth, db } from "../firebase";
 
 
 function AddHiddenGem() {
@@ -32,6 +26,7 @@ function AddHiddenGem() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [photo, setPhoto] = useState(null);
+    const [uploadStatus, setUploadStatus] = useState("");
 
     const [form, setForm] = useState({
         name: "",
@@ -190,16 +185,60 @@ function AddHiddenGem() {
             let imageUrl = "";
 
             if (photo) {
-                const imageRef = ref(
-                    storage,
-                    `hiddenGems/${user.uid}/${Date.now()}-${photo.name}`
+
+                setUploadStatus("📸 Uploading photo...");
+
+                const cloudinaryUrl =
+                    "https://api.cloudinary.com/v1_1/kbtn87n5/image/upload";
+
+                const uploadData = new FormData();
+
+                uploadData.append("file", photo);
+
+                uploadData.append(
+                    "upload_preset",
+                    "travelease_hidden_gems"
                 );
 
-                await uploadBytes(imageRef, photo);
+                const uploadResponse = await fetch(
+                    cloudinaryUrl,
+                    {
+                        method: "POST",
+                        body: uploadData,
+                    }
+                );
 
-                imageUrl = await getDownloadURL(imageRef);
+                if (!uploadResponse.ok) {
+
+                    const errorText =
+                        await uploadResponse.text();
+
+                    console.error(
+                        "Cloudinary HTTP status:",
+                        uploadResponse.status
+                    );
+
+                    console.error(
+                        "Cloudinary response:",
+                        errorText
+                    );
+
+                    throw new Error(
+                        `Cloudinary upload failed (${uploadResponse.status})`
+                    );
+                }
+
+                const uploadResult =
+                    await uploadResponse.json();
+
+                imageUrl =
+                    uploadResult.secure_url || "";
+
+                setUploadStatus("✅ Photo uploaded!");
             }
 
+            setUploadStatus("💎 Submitting hidden gem...");
+             
             await addDoc(
                 collection(db, "hiddenGems"),
                 {
@@ -592,6 +631,12 @@ function AddHiddenGem() {
 
 
                     {/* SUBMIT */}
+
+                    {uploadStatus && (
+                        <div className="upload-status">
+                            {uploadStatus}
+                        </div>
+                    )}
 
                     <div className="gem-submit-area">
 
