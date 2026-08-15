@@ -1,9 +1,75 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { collection, getDocs, query, where } from "firebase/firestore";
+
 import places from "../data/places";
+import { db } from "../firebase";
 
 function HiddenGems() {
-    return (
-        <section className="hidden-gems-section" id="hidden-gems">
+    const navigate = useNavigate();
 
+    const [communityGems, setCommunityGems] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadApprovedGems = async () => {
+            try {
+                const gemsQuery = query(
+                    collection(db, "hiddenGems"),
+                    where("status", "==", "approved")
+                );
+
+                const snapshot = await getDocs(gemsQuery);
+
+                const gems = snapshot.docs.map((item) => ({
+                    id: item.id,
+                    ...item.data(),
+                }));
+
+                setCommunityGems(gems);
+            } catch (error) {
+                console.error(
+                    "Unable to load hidden gems:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadApprovedGems();
+    }, []);
+
+    const staticGems = places.map((place) => ({
+        id: `static-${place.id}`,
+        name: place.name,
+        location: place.location,
+        image: place.image,
+        description: place.description,
+        community: false,
+    }));
+
+    const approvedCommunityGems = communityGems.map((gem) => ({
+        id: gem.id,
+        name: gem.name,
+        location: `${gem.city}, ${gem.state}`,
+        image: gem.image || null,
+        description: gem.description,
+        community: true,
+        latitude: gem.location?.latitude,
+        longitude: gem.location?.longitude,
+    }));
+
+    const allGems = [
+        ...staticGems,
+        ...approvedCommunityGems,
+    ];
+
+    return (
+        <section
+            className="hidden-gems-section"
+            id="hidden-gems"
+        >
             <div className="hidden-gems-header">
 
                 <div>
@@ -16,58 +82,102 @@ function HiddenGems() {
                     </h2>
 
                     <p className="hidden-gems-intro">
-                        Skip the usual tourist spots. Discover peaceful,
-                        lesser-known places that are worth the journey.
+                        Skip the usual tourist spots. Discover
+                        peaceful, lesser-known places that are
+                        worth the journey.
                     </p>
                 </div>
 
-                <button className="view-all-btn">
+                <button
+                    className="view-all-btn"
+                    onClick={() =>
+                        navigate("/hidden-gems")
+                    }
+                >
                     Explore hidden gems →
                 </button>
 
             </div>
 
+            {loading ? (
+                <p>
+                    Discovering hidden gems... ⏳
+                </p>
+            ) : (
+                <div className="hidden-gems-grid">
 
-            <div className="hidden-gems-grid">
+                    {allGems.map((place) => (
 
-                {places.map((place) => (
-                    <article className="gem-card" key={place.id}>
+                        <article
+                            className="gem-card"
+                            key={place.id}
+                        >
 
-                        <div className="gem-image">
-                            <img
-                                src={place.image}
-                                alt={place.name}
-                            />
+                            <div className="gem-image">
 
-                            <span className="gem-badge">
-                                💎 Hidden Gem
-                            </span>
-                        </div>
+                                {place.image ? (
+                                    <img
+                                        src={place.image}
+                                        alt={place.name}
+                                    />
+                                ) : (
+                                    <div className="gem-no-image">
+                                        💎
+                                    </div>
+                                )}
 
-                        <div className="gem-content">
+                                <span className="gem-badge">
+                                    💎 Hidden Gem
+                                </span>
 
-                            <span className="gem-location">
-                                📍 {place.location}
-                            </span>
+                            </div>
 
-                            <h3>{place.name}</h3>
+                            <div className="gem-content">
 
-                            <p>
-                                A lesser-known destination waiting
-                                to be explored.
-                            </p>
+                                <span className="gem-location">
+                                    📍 {place.location}
+                                </span>
 
-                            <button className="gem-button">
-                                Discover →
-                            </button>
+                                <h3>
+                                    {place.name}
+                                </h3>
 
-                        </div>
+                                <p>
+                                    {place.description ||
+                                        "A lesser-known destination waiting to be discovered."}
+                                </p>
 
-                    </article>
-                ))}
+                                {place.community && (
+                                    <span className="community-gem-label">
+                                        🤝 Community Discovery
+                                    </span>
+                                )}
 
-            </div>
+                                <button
+                                    className="gem-button"
+                                    onClick={() => {
+                                        if (
+                                            place.latitude &&
+                                            place.longitude
+                                        ) {
+                                            window.open(
+                                                `https://www.google.com/maps?q=${place.latitude},${place.longitude}`,
+                                                "_blank"
+                                            );
+                                        }
+                                    }}
+                                >
+                                    Discover →
+                                </button>
 
+                            </div>
+
+                        </article>
+
+                    ))}
+
+                </div>
+            )}
         </section>
     );
 }

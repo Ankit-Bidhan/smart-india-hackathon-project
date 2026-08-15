@@ -11,6 +11,7 @@ import AddHiddenGem from "./pages/AddHiddenGem";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
+import HiddenGemsPage from "./pages/HiddenGemsPage";
 import PlaceDetails from "./pages/PlaceDetails";
 
 function App() {
@@ -63,6 +64,11 @@ function App() {
           <Route
             path="/add-hidden-gem"
             element={<AddHiddenGem />}
+          />
+
+          <Route
+            path="/hidden-gems"
+            element={<HiddenGemsPage />}
           />
 
           <Route

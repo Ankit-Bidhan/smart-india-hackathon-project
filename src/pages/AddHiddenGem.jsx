@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { onAuthStateChanged } from "firebase/auth";
+import { storage } from "../firebase";
 import {
     addDoc,
     collection,
@@ -10,7 +11,13 @@ import {
     serverTimestamp,
 } from "firebase/firestore";
 
-import { auth, db } from "../firebase";
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
+} from "firebase/storage";
+
+import { auth, db, storage } from "../firebase";
 
 
 function AddHiddenGem() {
@@ -19,6 +26,7 @@ function AddHiddenGem() {
 
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
+    const [photo, setPhoto] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -55,7 +63,6 @@ function AddHiddenGem() {
                 }
 
                 try {
-
                     const userRef = doc(
                         db,
                         "users",
@@ -184,38 +191,27 @@ function AddHiddenGem() {
             await addDoc(
                 collection(db, "hiddenGems"),
                 {
-
                     name: form.name.trim(),
-
                     city: form.city.trim(),
-
                     state: form.state.trim(),
-
                     category: form.category,
-
                     description:
                         form.description.trim(),
-
                     whySpecial:
                         form.whySpecial.trim(),
-
                     bestTime:
                         form.bestTime.trim(),
-
                     location: {
                         latitude,
                         longitude,
                     },
-
                     submittedBy: user.uid,
-
                     submittedByName:
                         profile?.name ||
                         user.displayName ||
                         "TravelEase Contributor",
 
                     status: "pending",
-
                     createdAt:
                         serverTimestamp(),
 
@@ -352,7 +348,7 @@ function AddHiddenGem() {
                                     name="name"
                                     value={form.name}
                                     onChange={handleChange}
-                                    placeholder="e.g. Dropti Mata Well"
+                                    placeholder="e.g. Mahabharat Anubhav Kendra"
                                     maxLength="100"
                                 />
 
@@ -389,58 +385,61 @@ function AddHiddenGem() {
                                     onChange={handleChange}
                                     placeholder="e.g. Haryana"
                                 />
-
                             </div>
-
-
                             <div className="gem-field full">
-
                                 <label>
                                     Category *
                                 </label>
-
                                 <select
                                     name="category"
                                     value={form.category}
                                     onChange={handleChange}
                                 >
-
                                     <option>
                                         Historical
                                     </option>
-
                                     <option>
                                         Religious
                                     </option>
-
                                     <option>
                                         Nature
                                     </option>
-
                                     <option>
                                         Cultural
                                     </option>
-
                                     <option>
                                         Food
                                     </option>
-
                                     <option>
                                         Adventure
                                     </option>
-
                                     <option>
                                         Other
                                     </option>
-
                                 </select>
-
                             </div>
-
                         </div>
-
                     </div>
 
+                    <div className="gem-field full">
+                        <label>
+                            Place Photo
+                            <span> (Optional)</span>
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) =>
+                                setPhoto(
+                                    event.target.files?.[0] || null
+                                )
+                            }
+                        />
+                        <small>
+                            You can add a photo now or add it later
+                            from your profile.
+                        </small>
+                    </div>
 
                     {/* DESCRIPTION */}
 
