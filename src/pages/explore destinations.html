@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelEase — Hidden Gems Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#0F4C3A;
+    --teal-light:#12664B;
+    --gold:#E0A527;
+    --ink:#1D2327;
+    --gray:#6B7280;
+    --line:#E7E8EA;
+    --bg:#F7F8FA;
+    --gem:#B5651D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+  }
+
+  /* Header — matches TravelEase */
+  header{
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:1.1rem 3rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .logo{
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:1.25rem;
+    color:var(--teal);
+    display:flex; align-items:center; gap:.4rem;
+  }
+  .logo::before{ content:"✦"; color:var(--teal); }
+  nav{ display:flex; gap:2.2rem; }
+  nav a{
+    text-decoration:none;
+    color:#4B5563;
+    font-size:.95rem;
+    font-weight:500;
+  }
+  nav a.active, nav a:hover{ color:var(--teal); }
+  .profile{
+    display:flex; align-items:center; gap:.6rem;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:.35rem .9rem .35rem .35rem;
+    font-weight:600;
+    font-size:.9rem;
+  }
+  .avatar{
+    width:28px; height:28px; border-radius:50%;
+    background:linear-gradient(135deg,#F6C453,#E0A527);
+  }
+
+  /* Page intro */
+  .page-intro{
+    padding:2.4rem 3rem 1rem;
+  }
+  .page-intro h1{
+    font-family:'Poppins', sans-serif;
+    font-size:1.7rem;
+    margin:0 0 .3rem;
+  }
+  .page-intro p{
+    color:var(--gray);
+    margin:0;
+    font-size:.95rem;
+  }
+
+  /* Filter bar — new creative feature */
+  .filters{
+    display:flex; flex-wrap:wrap; gap:.6rem;
+    padding:1.2rem 3rem 0;
+    align-items:center;
+  }
+  .chip{
+    font-size:.85rem;
+    font-weight:600;
+    padding:.5rem 1rem;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:#4B5563;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .chip:hover{ border-color:var(--teal); color:var(--teal); }
+  .chip.active{ background:var(--teal); border-color:var(--teal); color:#fff; }
+
+  /* Grid */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:1.6rem;
+    padding:1.6rem 3rem 3rem;
+  }
+
+  .card{
+    background:#fff;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(20,20,20,.06);
+    border:1px solid var(--line);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(20,20,20,.09); }
+
+  .photo-wrap{ position:relative; }
+  .carousel{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .carousel::-webkit-scrollbar{ display:none; }
+  .photo{
+    flex:0 0 100%;
+    height:170px;
+    background-size:cover;
+    background-position:center;
+    scroll-snap-align:start;
+  }
+  .carousel-arrow{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:28px; height:28px;
+    background:rgba(255,255,255,.9);
+    border:none;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-size:.8rem;
+    color:var(--ink);
+    box-shadow:0 2px 6px rgba(0,0,0,.18);
+    opacity:0;
+    transition:opacity .15s ease;
+    z-index:2;
+  }
+  .photo-wrap:hover .carousel-arrow{ opacity:1; }
+  .carousel-arrow.prev{ left:.5rem; }
+  .carousel-arrow.next{ right:.5rem; }
+  .carousel-arrow:disabled{ display:none; }
+  .dots{
+    position:absolute; bottom:.55rem; left:0; right:0;
+    display:flex; justify-content:center; gap:.35rem;
+    z-index:2;
+  }
+  .dots .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,.55);
+    transition:.15s ease;
+  }
+  .dots .dot.active{ background:#fff; width:16px; border-radius:4px; }
+  .crowd-badge{
+    position:absolute; top:.7rem; right:.7rem;
+    background:#fff;
+    border-radius:999px;
+    padding:.3rem .7rem;
+    font-size:.75rem;
+    font-weight:600;
+    display:flex; align-items:center; gap:.3rem;
+    box-shadow:0 2px 6px rgba(0,0,0,.12);
+  }
+  .crowd-badge.low{ color:#0F4C3A; }
+  .crowd-badge.moderate{ color:#8A5A00; }
+  .crowd-badge.high{ color:#8A1F1F; }
+
+  /* Hidden gem badge — new */
+  .gem-badge{
+    position:absolute; top:.7rem; left:.7rem;
+    background:var(--gem);
+    color:#fff;
+    border-radius:999px;
+    padding:.3rem .7rem .3rem .55rem;
+    font-size:.72rem;
+    font-weight:700;
+    display:flex; align-items:center; gap:.3rem;
+    box-shadow:0 2px 6px rgba(0,0,0,.18);
+  }
+
+  .card-body{ padding:1.1rem 1.2rem 1.3rem; }
+  .location{
+    display:flex; align-items:center; gap:.3rem;
+    color:var(--gray);
+    font-size:.82rem;
+    margin-bottom:.35rem;
+  }
+  .card h3{
+    font-family:'Poppins', sans-serif;
+    font-size:1.15rem;
+    margin:0 0 .4rem;
+  }
+  .card p.desc{
+    font-size:.88rem;
+    color:#4B5563;
+    line-height:1.45;
+    margin:0 0 .8rem;
+    min-height:2.6em;
+  }
+
+  /* Local tip reveal — new creative feature, only on hidden gems */
+  .local-tip{
+    background:#FBF3E7;
+    border:1px dashed var(--gem);
+    border-radius:8px;
+    padding:.6rem .8rem;
+    font-size:.82rem;
+    color:#6B4419;
+    margin-bottom:.9rem;
+    display:none;
+  }
+  .card.gem.open .local-tip{ display:block; }
+  .card.gem .desc{ cursor:pointer; }
+  .reveal-hint{
+    font-size:.78rem;
+    color:var(--gem);
+    font-weight:600;
+    cursor:pointer;
+    display:inline-block;
+    margin-bottom:.8rem;
+  }
+
+  .card-footer{
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .rating{
+    display:flex; align-items:center; gap:.3rem;
+    font-weight:600;
+    font-size:.9rem;
+  }
+  .rating .star{ color:var(--gold); }
+  .explore{
+    color:var(--teal);
+    font-weight:700;
+    font-size:.88rem;
+    text-decoration:none;
+  }
+
+  footer{
+    padding:2rem 3rem;
+    color:var(--gray);
+    font-size:.82rem;
+    border-top:1px solid var(--line);
+  }
+
+  @media (max-width:720px){
+    header{ padding:1rem 1.2rem; flex-wrap:wrap; gap:.8rem; }
+    nav{ gap:1.2rem; order:3; width:100%; justify-content:space-between; }
+    .page-intro, .filters, .grid{ padding-left:1.2rem; padding-right:1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TravelEase</div>
+  <nav>
+    <a href="#" class="active">Home</a>
+    <a href="#">Explore</a>
+    <a href="#">AI Guide</a>
+    <a href="#">Local Guides</a>
+  </nav>
+  <div class="profile">
+    <div class="avatar"></div>
+    Anupreet Dhiman ▾
+  </div>
+</header>
+
+<div class="page-intro">
+  <h1>Explore Destinations</h1>
+  <p>Popular picks — and a few the locals only tell their friends about.</p>
+</div>
+
+<div class="filters" id="filters">
+  <button class="chip active" data-filter="all">All</button>
+  <button class="chip" data-filter="gem">🤫 Hidden Gems</button>
+  <button class="chip" data-filter="low">Low crowd</button>
+  <button class="chip" data-filter="popular">Popular</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>TravelEase — demo styling to match your current site. Swap photo URLs, copy, and links for the real thing.</footer>
+
+<script>
+  const destinations = [
+    {
+      name: "Brahma Sarovar",
+      location: "Kurukshetra, Haryana",
+      desc: "A peaceful and historic destination with beautiful surroundings.",
+      rating: 4.7,
+      crowd: "low",
+      gem: false,
+      photos: [
+        "https://images.unsplash.com/photo-1466442929976-97f336a657be?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=600&auto=format&fit=crop"
+      ]
+    },
+    {
+      name: "Manali",
+      location: "Himachal Pradesh",
+      desc: "Mountains, valleys and scenic landscapes make Manali a popular escape.",
+      rating: 4.8,
+      crowd: "high",
+      gem: false,
+      photos: [
+        "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1533760881669-80d0a3117c1f?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1626016807571-c2e4b7c6c8c5?q=80&w=600&auto=format&fit=crop"
+      ]
+    },
+    {
+      name: "Jaipur",
+      location: "Rajasthan",
+      desc: "Discover forts, culture, heritage and the colourful streets of Jaipur.",
+      rating: 4.6,
+      crowd: "moderate",
+      gem: false,
+      photos: [
+        "https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1599661046289-e31897846e41?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1477587458883-47145ed94246?q=80&w=600&auto=format&fit=crop"
+      ]
+    },
+    {
+      name: "Pandu Pindara",
+      location: "5km from Kurukshetra",
+      desc: "A quiet riverside spot most visitors to Brahma Sarovar never find.",
+      rating: 4.5,
+      crowd: "low",
+      gem: true,
+      tip: "Go right after the temple bells at 7am — you'll likely have the ghat to yourself.",
+      photos: [
+        "https://images.unsplash.com/photo-1600100397608-f43d5aa3d0e1?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1580500550469-8e3c0c8dc4d8?q=80&w=600&auto=format&fit=crop"
+      ]
+    },
+    {
+      name: "Naggar Village",
+      location: "20 min from Manali",
+      desc: "A sleepy hillside village with an old castle, missed by most tourists.",
+      rating: 4.9,
+      crowd: "low",
+      gem: true,
+      tip: "Skip the taxi stand — local buses from Manali bus terminal cost a fraction and stop right outside the castle.",
+      photos: [
+        "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1590766940554-153ea9c9d6bd?q=80&w=600&auto=format&fit=crop"
+      ]
+    },
+    {
+      name: "Panna Meena ka Kund",
+      location: "Amer, near Jaipur",
+      desc: "A stunning stepwell locals visit for photos — barely marked on maps.",
+      rating: 4.8,
+      crowd: "low",
+      gem: true,
+      tip: "Arrive by 6:30am before the tour buses reach nearby Amer Fort — the light hits the steps perfectly.",
+      photos: [
+        "https://images.unsplash.com/photo-1599661046289-e31897846e41?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=600&auto=format&fit=crop"
+      ]
+    }
+  ];
+
+  const crowdLabel = { low: "Low", moderate: "Moderate", high: "High" };
+  const grid = document.getElementById('grid');
+
+  function cardHTML(d, cardIndex){
+    const multi = d.photos.length > 1;
+    return `
+      <div class="card ${d.gem ? 'gem' : ''}" data-crowd="${d.crowd}" data-gem="${d.gem}">
+        <div class="photo-wrap">
+          <div class="carousel" id="carousel-${cardIndex}">
+            ${d.photos.map(src => `<div class="photo" style="background-image:url('${src}')"></div>`).join('')}
+          </div>
+          ${multi ? `
+            <button class="carousel-arrow prev" data-target="${cardIndex}" data-dir="-1">‹</button>
+            <button class="carousel-arrow next" data-target="${cardIndex}" data-dir="1">›</button>
+            <div class="dots" id="dots-${cardIndex}">
+              ${d.photos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('')}
+            </div>
+          ` : ''}
+          <div class="crowd-badge ${d.crowd}">👥 ${crowdLabel[d.crowd]}</div>
+          ${d.gem ? `<div class="gem-badge">🤫 Hidden Gem</div>` : ''}
+        </div>
+        <div class="card-body">
+          <div class="location">📍 ${d.location}</div>
+          <h3>${d.name}</h3>
+          <p class="desc">${d.desc}</p>
+          ${d.gem ? `
+            <span class="reveal-hint">+ Local's tip</span>
+            <div class="local-tip">💬 "${d.tip}"</div>
+          ` : ''}
+          <div class="card-footer">
+            <div class="rating"><span class="star">★</span>${d.rating}</div>
+            <a class="explore" href="#">Explore →</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function render(list){
+    grid.innerHTML = list.map((d, i) => cardHTML(d, i)).join('');
+
+    document.querySelectorAll('.card.gem .reveal-hint').forEach(hint => {
+      hint.addEventListener('click', (e) => {
+        e.preventDefault();
+        hint.closest('.card').classList.toggle('open');
+      });
+    });
+
+    // sync dots as the carousel is swiped
+    document.querySelectorAll('.carousel').forEach(carousel => {
+      const id = carousel.id.split('-')[1];
+      const dots = document.querySelectorAll(`#dots-${id} .dot`);
+      if(!dots.length) return;
+      carousel.addEventListener('scroll', () => {
+        const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === idx));
+      });
+    });
+
+    // arrow buttons scroll the matching carousel by one image
+    document.querySelectorAll('.carousel-arrow').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const carousel = document.getElementById(`carousel-${btn.dataset.target}`);
+        carousel.scrollBy({ left: carousel.clientWidth * Number(btn.dataset.dir), behavior: 'smooth' });
+      });
+    });
+  }
+
+  render(destinations);
+
+  document.getElementById('filters').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if(!chip || chip.id === 'surpriseBtn') return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const f = chip.dataset.filter;
+    let list = destinations;
+    if(f === 'gem') list = destinations.filter(d => d.gem);
+    if(f === 'low') list = destinations.filter(d => d.crowd === 'low');
+    if(f === 'popular') list = destinations.filter(d => d.rating >= 4.7 && !d.gem);
+    render(list);
+  });
+</script>
+
+</body>
+</html>
