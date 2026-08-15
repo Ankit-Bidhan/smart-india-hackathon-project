@@ -226,12 +226,9 @@ function Navbar() {
                         Local Guides
                     </Link>
 
-
                     {user ? (
-
                         <>
                             <div className="mobile-user-info">
-
                                 <span className="user-avatar">
                                     {user.photoURL ? (
                                         <img
@@ -255,6 +252,16 @@ function Navbar() {
                                 </div>
 
                             </div>
+
+                            <button
+                                className="mobile-profile"
+                                onClick={() => {
+                                    setMenuOpen(false);
+                                    navigate("/profile");
+                                }}
+                            >
+                                👤 My Profile
+                            </button>
 
                             <button
                                 className="mobile-logout"

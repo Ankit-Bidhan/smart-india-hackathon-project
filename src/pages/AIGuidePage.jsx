@@ -49,7 +49,7 @@ function AIGuide() {
         try {
 
             const response = await fetch(
-                "http://localhost:5000/api/chat",
+                "/.netlify/functions/chat",
                 {
                     method: "POST",
 
@@ -213,17 +213,17 @@ function AIGuide() {
                     <button
                         onClick={() =>
                             sendMessage(
-                                "Plan a one day trip to Kurukshetra."
+                                "Plan a one day trip for the destination we are currently discussing. If no destination has been mentioned, ask me which destination I want to visit.."
                             )
                         }
                     >
-                        📍 Plan my trip
+                        📍 Plan my 1 day trip
                     </button>
 
                     <button
                         onClick={() =>
                             sendMessage(
-                                "Find hidden gems in Kurukshetra."
+                                "Find hidden gems in the destination we are currently discussing. If no destination has been mentioned, ask me which destination"
                             )
                         }
                     >
@@ -233,7 +233,7 @@ function AIGuide() {
                     <button
                         onClick={() =>
                             sendMessage(
-                                "Suggest some local food to try in Kurukshetra."
+                                "Suggest some local food to try for the destination we are currently discussing. If no destination has been mentioned, ask me which destination"
                             )
                         }
                     >
@@ -243,7 +243,7 @@ function AIGuide() {
                     <button
                         onClick={() =>
                             sendMessage(
-                                "What is the best time to visit Kurukshetra?"
+                                "What is the best time to visit the destination we are currently discussing. If no destination has been mentioned, ask me which destination?"
                             )
                         }
                     >
