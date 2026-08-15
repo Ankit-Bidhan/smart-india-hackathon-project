@@ -19,27 +19,18 @@ import { auth, db } from "../firebase";
 function Profile() {
 
     const navigate = useNavigate();
-
     const [user, setUser] = useState(null);
-
     const [profile, setProfile] = useState(null);
-
     const [application, setApplication] = useState(null);
-
+    const [contributions, setContributions] = useState([]);
     const [loading, setLoading] = useState(true);
-
     const [showApplication, setShowApplication] =
         useState(false);
-
     const [reason, setReason] = useState("");
-
     const [submitting, setSubmitting] =
         useState(false);
-
     const [error, setError] = useState("");
-
     const [success, setSuccess] = useState("");
-
 
     // =========================
     // LOAD USER
@@ -69,19 +60,32 @@ function Profile() {
                         "users",
                         currentUser.uid
                     );
-
                     const profileSnap =
                         await getDoc(profileRef);
 
-
                     if (profileSnap.exists()) {
-
                         setProfile(
                             profileSnap.data()
                         );
-
                     }
+ 
+                    // Load user's hidden gem contributions
 
+                    const contributionsQuery = query(
+                        collection(db, "hiddenGems"),
+                        where("submittedBy", "==", currentUser.uid)
+                    );
+
+                    const contributionsSnap =
+                        await getDocs(contributionsQuery);
+
+                    const contributionList =
+                        contributionsSnap.docs.map((item) => ({
+                            id: item.id,
+                            ...item.data(),
+                        }));
+
+                    setContributions(contributionList);
 
                     // Check existing guide application
 
@@ -547,13 +551,107 @@ function Profile() {
                                 >
                                     💎 Add a Hidden Gem →
                                 </button>
-
                             </div>
-
                         </section>
-
                     )}
-                    
+                
+                {/* =========================
+                    MY CONTRIBUTIONS
+                    ========================= */}
+
+                {profile?.role === "localGuide" &&(
+                    <section className="contributions-section" >
+                        <div className="contributions-header">
+                            <div>
+                                <p className="section-label">
+                                    COMMUNITY CONTRIBUTIONS
+                                </p>
+                                <h2>
+                                       My Hidden Gems 💎
+                                </h2>
+                                <p>
+                                    Track the places you have submitted
+                                    and their review status.
+                                </p>
+                            </div>
+                             <span className="contribution-count">
+                                {contributions.length}
+                             </span>
+                        </div>
+                        {contributions.length === 0 ? (
+                            <div className="no-contributions">
+                                <div>💎</div>
+                                <h3>
+                                    No hidden gems yet
+                                </h3>
+                                <p>
+                                    Share a special local place with travellers.
+                                </p>
+                                <button
+                                    className="guide-apply-btn"
+                                    onClick={() =>
+                                        navigate("/add-hidden-gem")
+                                    }
+                                >
+                                    Add a Hidden Gem →
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="contributions-list">
+                                {contributions.map((gem) => (
+                                    <article
+                                        className="contribution-card"
+                                        key={gem.id}
+                                    >
+                                        {/* IMAGE */}
+                                        <div className="contribution-image">
+                                            {gem.image ? (
+                                                <img
+                                                    src={gem.image}
+                                                    alt={gem.name}
+                                                />
+                                            ) : (
+                                                <div className="contribution-no-image">
+                                                    💎
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* CONTENT */}
+                                        <div className="contribution-content">
+                                            <span className="gem-location">
+                                                📍 {gem.city}, {gem.state}
+                                            </span>
+                                            <h3>
+                                                {gem.name}
+                                            </h3>
+                                            <p>
+                                                {gem.description}
+                                            </p>
+
+                                            {/* STATUS */}
+                                            {gem.status === "pending" && (
+                                                <div className="contribution-status pending">
+                                                    ⏳ Pending Review
+                                                </div>
+                                            )}
+                                            {gem.status === "approved" && (
+                                                <div className="contribution-status approved">
+                                                    ✅ Approved — Live on TravelEase
+                                                </div>
+                                            )}
+                                            {gem.status === "rejected" && (
+                                                <div className="contribution-status rejected">
+                                                    ❌ Not Approved
+                                                </div>
+                                            )}
+                                        </div>
+                                    </article>
+                                ))}
+                        </div> )}
+                        </section>
+                    )}
+
                 {profile?.role === "admin" && (
                     <section className="verified-guide-card">
                         <div className="verified-icon">

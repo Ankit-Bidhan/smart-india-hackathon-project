@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { storage } from "../firebase";
 import {
     addDoc,
     collection,
@@ -26,13 +25,13 @@ function AddHiddenGem() {
 
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
-    const [photo, setPhoto] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [photo, setPhoto] = useState(null);
 
     const [form, setForm] = useState({
         name: "",
@@ -188,6 +187,19 @@ function AddHiddenGem() {
 
         try {
 
+            let imageUrl = "";
+
+            if (photo) {
+                const imageRef = ref(
+                    storage,
+                    `hiddenGems/${user.uid}/${Date.now()}-${photo.name}`
+                );
+
+                await uploadBytes(imageRef, photo);
+
+                imageUrl = await getDownloadURL(imageRef);
+            }
+
             await addDoc(
                 collection(db, "hiddenGems"),
                 {
@@ -201,6 +213,7 @@ function AddHiddenGem() {
                         form.whySpecial.trim(),
                     bestTime:
                         form.bestTime.trim(),
+                    image: imageUrl,
                     location: {
                         latitude,
                         longitude,
@@ -223,6 +236,10 @@ function AddHiddenGem() {
                 "Hidden gem submitted successfully! It will be reviewed by an admin. 💎"
             );
 
+            setTimeout(() => {
+                navigate("/profile");
+            }, 1500);
+
 
             setForm({
                 name: "",
@@ -236,6 +253,7 @@ function AddHiddenGem() {
                 longitude: "",
             });
 
+            setPhoto(null);
 
         } catch (err) {
 
@@ -421,26 +439,6 @@ function AddHiddenGem() {
                         </div>
                     </div>
 
-                    <div className="gem-field full">
-                        <label>
-                            Place Photo
-                            <span> (Optional)</span>
-                        </label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(event) =>
-                                setPhoto(
-                                    event.target.files?.[0] || null
-                                )
-                            }
-                        />
-                        <small>
-                            You can add a photo now or add it later
-                            from your profile.
-                        </small>
-                    </div>
-
                     {/* DESCRIPTION */}
 
                     <div className="gem-section">
@@ -503,6 +501,26 @@ function AddHiddenGem() {
 
                         </div>
 
+                    </div>
+
+                    <div className="gem-field full">
+
+                        <label>
+                            📸 Place Photo <span>(Optional)</span>
+                        </label>
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) =>
+                                setPhoto(
+                                    event.target.files?.[0] || null
+                                )
+                            }
+                        />
+                        <small>
+                            You can add a photo now or add it later from your profile.
+                        </small>
                     </div>
 
 
