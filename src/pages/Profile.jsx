@@ -70,22 +70,28 @@ function Profile() {
                     }
  
                     // Load user's hidden gem contributions
+                    try {
+                        const contributionsQuery = query(
+                            collection(db, "hiddenGems"),
+                            where("submittedBy", "==", currentUser.uid)
+                        );
+                        const contributionsSnap =
+                            await getDocs(contributionsQuery);
+                        const contributionList =
+                            contributionsSnap.docs.map((item) => ({
+                                id: item.id,
+                                ...item.data(),
+                            }));
+                        setContributions(contributionList);
+                    } catch (contributionError) {
+                        console.error(
+                            "Hidden gem contributions loading error:",
+                            contributionError
+                        );
+                        // Do not break the complete profile
+                        setContributions([]);
 
-                    const contributionsQuery = query(
-                        collection(db, "hiddenGems"),
-                        where("submittedBy", "==", currentUser.uid)
-                    );
-
-                    const contributionsSnap =
-                        await getDocs(contributionsQuery);
-
-                    const contributionList =
-                        contributionsSnap.docs.map((item) => ({
-                            id: item.id,
-                            ...item.data(),
-                        }));
-
-                    setContributions(contributionList);
+                    }
 
                     // Check existing guide application
 
