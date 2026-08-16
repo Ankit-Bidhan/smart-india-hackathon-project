@@ -15,7 +15,9 @@ function HiddenGemsPage() {
                 const snapshot = await getDocs(query(collection(db, "hiddenGems"), where("status", "==", "approved")));
                 const gemList = snapshot.docs
                     .map((item) => ({ id: item.id, ...item.data() }))
-                    .filter((item) => item.placeType !== "touristDestination");
+                    // Only explicitly classified Hidden Gems belong here.
+                    // Tourist destinations must stay in Explore Destinations.
+                    .filter((item) => item.placeType === "hiddenGem");
                 setGems(gemList);
             } catch (err) {
                 console.error("Hidden gems loading error:", err);
