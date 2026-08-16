@@ -21,20 +21,15 @@ function extractCoordinatesFromUrl(url = "") {
             if (match) {
                 const latitude = Number(match[1]);
                 const longitude = Number(match[2]);
-                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
-                    return { latitude, longitude };
-                }
+                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) return { latitude, longitude };
             }
         }
-    } catch (err) {
-        console.warn("Could not parse map URL:", err);
-    }
+    } catch (err) { console.warn("Could not parse map URL:", err); }
     return null;
 }
 
 async function geocodePlace(name, city, state) {
     const searches = [`${name}, ${city}, ${state}, India`, `${name}, ${city}, India`, `${city}, ${state}, India`];
-
     for (const search of searches) {
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=in&q=${encodeURIComponent(search)}`, { headers: { Accept: "application/json" } });
@@ -42,17 +37,12 @@ async function geocodePlace(name, city, state) {
                 const results = await response.json();
                 if (results.length) {
                     const preferred = results.find((item) => item.display_name?.toLowerCase().includes(state.toLowerCase())) || results[0];
-                    const latitude = Number(preferred.lat);
-                    const longitude = Number(preferred.lon);
+                    const latitude = Number(preferred.lat); const longitude = Number(preferred.lon);
                     if (Number.isFinite(latitude) && Number.isFinite(longitude)) return { latitude, longitude };
                 }
             }
-        } catch (err) {
-            console.warn("Nominatim geocoding failed:", err);
-        }
+        } catch (err) { console.warn("Nominatim geocoding failed:", err); }
     }
-
-    // Final no-key fallback.
     try {
         const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=5&language=en&format=json&countryCode=IN`);
         if (response.ok) {
@@ -62,9 +52,7 @@ async function geocodePlace(name, city, state) {
                 return { latitude: preferred.latitude, longitude: preferred.longitude };
             }
         }
-    } catch (err) {
-        console.warn("Open-Meteo geocoding fallback failed:", err);
-    }
+    } catch (err) { console.warn("Open-Meteo geocoding fallback failed:", err); }
     return null;
 }
 
@@ -95,31 +83,16 @@ function HiddenGemDetails(){
             setLocationLoading(true); setWeatherLoading(true); setWeather(null);
             try{
                 let found = null;
-                const storedLatitude = Number(gem.latitude);
-                const storedLongitude = Number(gem.longitude);
-
-                if(Number.isFinite(storedLatitude) && Number.isFinite(storedLongitude)) {
-                    found = { latitude: storedLatitude, longitude: storedLongitude };
-                } else {
-                    // First try the exact Google Maps URL because it may contain the pin coordinates.
-                    found = extractCoordinatesFromUrl(gem.mapUrl);
-                    if (!found) found = await geocodePlace(gem.name, gem.city, gem.state);
-                }
-
+                const storedLatitude = Number(gem.latitude); const storedLongitude = Number(gem.longitude);
+                if(Number.isFinite(storedLatitude) && Number.isFinite(storedLongitude)) found = { latitude: storedLatitude, longitude: storedLongitude };
+                else { found = extractCoordinatesFromUrl(gem.mapUrl); if (!found) found = await geocodePlace(gem.name, gem.city, gem.state); }
                 if(!found) throw new Error("Location coordinates not found.");
                 const { latitude, longitude } = found;
                 setCoordinates(found);
-
-                // Cache coordinates for future page loads. This does not change the guide's mobile form.
                 if(!Number.isFinite(storedLatitude) || !Number.isFinite(storedLongitude)) {
-                    try {
-                        await updateDoc(doc(db,"hiddenGems",gem.id), { latitude, longitude, coordinatesUpdatedAt: new Date().toISOString() });
-                        setGem((old)=>({...old,latitude,longitude}));
-                    } catch(saveError) {
-                        console.warn("Could not save coordinates:",saveError);
-                    }
+                    try { await updateDoc(doc(db,"hiddenGems",gem.id), { latitude, longitude, coordinatesUpdatedAt: new Date().toISOString() }); setGem((old)=>({...old,latitude,longitude})); }
+                    catch(saveError) { console.warn("Could not save coordinates:",saveError); }
                 }
-
                 const weatherResponse=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=3&timezone=auto`);
                 if(!weatherResponse.ok)throw new Error("Weather request failed.");
                 setWeather(await weatherResponse.json());
@@ -134,12 +107,13 @@ function HiddenGemDetails(){
 
     const images=gem.images?.length>0?gem.images:gem.image?[gem.image]:[];
     const mapEmbedUrl=coordinates?`https://www.openstreetmap.org/export/embed.html?bbox=${coordinates.longitude-0.015}%2C${coordinates.latitude-0.015}%2C${coordinates.longitude+0.015}%2C${coordinates.latitude+0.015}&layer=mapnik&marker=${coordinates.latitude}%2C${coordinates.longitude}`:"";
+    const aiUrl = `/ai-guide?place=${encodeURIComponent(gem.name)}&city=${encodeURIComponent(gem.city || "")}&category=${encodeURIComponent(gem.category || "")}&description=${encodeURIComponent(gem.description || "")}`;
 
     return <main className="gem-details-page"><div className="gem-details-container">
         <button className="gem-details-back" onClick={()=>navigate(-1)}>← Back</button>
         <section className="gem-details-hero">{images.length>0?<img src={images[0]} alt={gem.name}/>:<div className="gem-details-no-image">💎</div>}<div className="gem-details-hero-overlay"><span>💎 Hidden Gem</span><h1>{gem.name}</h1><p>📍 {gem.city}, {gem.state}</p></div></section>
         <div className="gem-details-layout"><section className="gem-details-main"><span className="gem-details-category">{gem.category}</span><h2>About this place</h2><p className="gem-details-description">{gem.description}</p>{gem.whySpecial&&<><h2>✨ Why is it special?</h2><p className="gem-details-description">{gem.whySpecial}</p></>}{images.length>1&&<section className="gem-details-gallery"><h2>📸 Photos</h2><div className="gem-details-photo-grid">{images.map((image,index)=><img key={index} src={image} alt={`${gem.name} ${index+1}`}/>)}</div></section>}</section>
-        <aside className="gem-details-card"><div className="gem-detail-item"><span>📍 Location</span><strong>{gem.city}, {gem.state}</strong></div><div className="gem-detail-item"><span>🏷️ Category</span><strong>{gem.category}</strong></div>{gem.bestTime&&<div className="gem-detail-item"><span>🕐 Best time</span><strong>{gem.bestTime}</strong></div>}{gem.submittedByName&&<div className="gem-detail-item"><span>🤝 Submitted by</span><strong>{gem.submittedByName}</strong></div>}{gem.mapUrl&&<button className="gem-view-map-btn" onClick={()=>window.open(gem.mapUrl,"_blank","noopener,noreferrer")}>📍 Open in Maps</button>}</aside></div>
+        <aside className="gem-details-card"><div className="gem-detail-item"><span>📍 Location</span><strong>{gem.city}, {gem.state}</strong></div><div className="gem-detail-item"><span>🏷️ Category</span><strong>{gem.category}</strong></div>{gem.bestTime&&<div className="gem-detail-item"><span>🕐 Best time</span><strong>{gem.bestTime}</strong></div>}{gem.submittedByName&&<div className="gem-detail-item"><span>🤝 Submitted by</span><strong>{gem.submittedByName}</strong></div>}{gem.mapUrl&&<button className="gem-view-map-btn" onClick={()=>window.open(gem.mapUrl,"_blank","noopener,noreferrer")}>📍 Open in Maps</button>}<button className="gem-view-map-btn" onClick={()=>navigate(aiUrl)}>🤖 Ask AI about this place</button></aside></div>
         <section className="gem-extras-grid"><div className="gem-extra-card"><div className="gem-extra-header"><div><p className="section-label">LOCATION</p><h2>📍 Explore on map</h2></div>{coordinates&&<span className="gem-coordinate-badge">{coordinates.latitude.toFixed(3)}, {coordinates.longitude.toFixed(3)}</span>}</div>{locationLoading?<div className="gem-extra-loading">Finding this place on the map... ⏳</div>:coordinates?<iframe className="gem-map-frame" title={`Map showing ${gem.name}`} src={mapEmbedUrl} loading="lazy"/>:<div className="gem-extra-empty">Map preview is unavailable for this place. {gem.mapUrl&&"Use Open in Maps above to view it."}</div>}</div>
         <div className="gem-extra-card gem-weather-card"><div className="gem-extra-header"><div><p className="section-label">LOCAL WEATHER</p><h2>🌤️ Weather here</h2></div>{weather?.timezone&&<span className="gem-coordinate-badge">Live forecast</span>}</div>{weatherLoading?<div className="gem-extra-loading">Checking local weather... 🌤️</div>:weather?.current?<><div className="gem-current-weather"><div className="gem-weather-icon">{weatherEmoji[weather.current.weather_code]||"🌤️"}</div><div><strong>{Math.round(weather.current.temperature_2m)}°C</strong><span>{weatherLabels[weather.current.weather_code]||"Current conditions"}</span></div></div><div className="gem-weather-stats"><span>🌡️ Feels like <strong>{Math.round(weather.current.apparent_temperature)}°C</strong></span><span>💧 Humidity <strong>{weather.current.relative_humidity_2m}%</strong></span><span>💨 Wind <strong>{Math.round(weather.current.wind_speed_10m)} km/h</strong></span></div><div className="gem-forecast">{weather.daily.time.map((date,index)=><div key={date} className="gem-forecast-day"><strong>{formatDay(date)}</strong><span>{weatherEmoji[weather.daily.weather_code[index]]||"🌤️"}</span><small>{Math.round(weather.daily.temperature_2m_max[index])}° / {Math.round(weather.daily.temperature_2m_min[index])}°</small></div>)}</div><p className="gem-weather-source">Weather data by Open-Meteo • Updated forecast</p></>:<div className="gem-extra-empty">Weather is currently unavailable for this place.</div>}</div></section>
     </div></main>;
