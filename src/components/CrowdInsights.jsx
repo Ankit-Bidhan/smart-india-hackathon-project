@@ -2,21 +2,46 @@ import { useEffect, useMemo, useState } from "react";
 import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
-import places from "../data/places";
 import { auth, db } from "../firebase";
 
 const REPORT_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 function CrowdInsights() {
+    const [places, setPlaces] = useState([]);
     const [reports, setReports] = useState([]);
     const [user, setUser] = useState(null);
     const [selectedPlace, setSelectedPlace] = useState(null);
     const [reporting, setReporting] = useState(false);
     const [message, setMessage] = useState("");
+    const [loadingPlaces, setLoadingPlaces] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, setUser);
         return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        const loadPlaces = async () => {
+            try {
+                setLoadingPlaces(true);
+                const snapshot = await getDocs(collection(db, "destinations"));
+                const destinationList = snapshot.docs
+                    .map((item) => ({
+                        id: item.id,
+                        ...item.data(),
+                    }))
+                    .filter((place) => place.isActive !== false && place.status !== "pending");
+
+                setPlaces(destinationList);
+            } catch (error) {
+                console.error("Destinations loading error:", error);
+                setMessage("Could not load destinations for crowd insights.");
+            } finally {
+                setLoadingPlaces(false);
+            }
+        };
+
+        loadPlaces();
     }, []);
 
     const loadReports = async () => {
@@ -45,43 +70,55 @@ function CrowdInsights() {
 
         places.forEach((place) => {
             const recent = reports.filter((report) => {
-                if (report.placeId !== place.id) return false;
+                if (String(report.placeId) !== String(place.id)) return false;
+
                 const created = report.createdAt?.toMillis
                     ? report.createdAt.toMillis()
                     : new Date(report.createdAt || 0).getTime();
+
                 return Number.isFinite(created) && now - created <= REPORT_WINDOW_MS;
             });
 
             const latestByUser = new Map();
+
             recent.forEach((report) => {
                 const key = report.userId || report.id;
                 const existing = latestByUser.get(key);
                 const created = report.createdAt?.toMillis
                     ? report.createdAt.toMillis()
                     : new Date(report.createdAt || 0).getTime();
+
                 if (!existing || created > existing.created) {
                     latestByUser.set(key, { ...report, created });
                 }
             });
 
             const counts = { Low: 0, Moderate: 0, High: 0 };
+
             latestByUser.forEach((report) => {
-                if (counts[report.level] !== undefined) counts[report.level] += 1;
+                if (counts[report.level] !== undefined) {
+                    counts[report.level] += 1;
+                }
             });
 
             const total = counts.Low + counts.Moderate + counts.High;
             let crowd = "No recent reports";
+
             if (total > 0) {
-                if (counts.High >= counts.Moderate && counts.High >= counts.Low) crowd = "High";
-                else if (counts.Moderate >= counts.Low) crowd = "Moderate";
-                else crowd = "Low";
+                if (counts.High >= counts.Moderate && counts.High >= counts.Low) {
+                    crowd = "High";
+                } else if (counts.Moderate >= counts.Low) {
+                    crowd = "Moderate";
+                } else {
+                    crowd = "Low";
+                }
             }
 
             result[place.id] = { crowd, total, counts };
         });
 
         return result;
-    }, [reports]);
+    }, [places, reports]);
 
     const submitReport = async (level) => {
         if (!selectedPlace || !user || reporting) return;
@@ -130,35 +167,59 @@ function CrowdInsights() {
 
             <div className="crowd-layout">
                 <div className="crowd-list">
-                    {places.map((place) => {
-                        const data = crowdData[place.id];
-                        const statusClass = data?.crowd.toLowerCase().replace(" ", "-");
-
-                        return (
-                            <div className="crowd-card" key={place.id}>
-                                <div className="crowd-place">
-                                    <div className="crowd-icon">📍</div>
-                                    <div>
-                                        <h3>{place.name}</h3>
-                                        <p>{place.location}</p>
-                                    </div>
+                    {loadingPlaces ? (
+                        <div className="crowd-card">
+                            <div className="crowd-place">
+                                <div className="crowd-icon">🧭</div>
+                                <div>
+                                    <h3>Loading destinations...</h3>
+                                    <p>Fetching destinations from TravelEase.</p>
                                 </div>
-
-                                <div className="crowd-status">
-                                    <span className={`status-dot ${statusClass}`}></span>
-                                    <span>{data?.crowd || "No recent reports"}</span>
-                                    {data?.total > 0 && <small>{data.total} report{data.total > 1 ? "s" : ""}</small>}
-                                </div>
-
-                                <button
-                                    className="crowd-report-btn"
-                                    onClick={() => setSelectedPlace(place)}
-                                >
-                                    📍 Report crowd
-                                </button>
                             </div>
-                        );
-                    })}
+                        </div>
+                    ) : places.length > 0 ? (
+                        places.map((place) => {
+                            const data = crowdData[place.id];
+                            const statusClass = data?.crowd.toLowerCase().replace(" ", "-");
+
+                            return (
+                                <div className="crowd-card" key={place.id}>
+                                    <div className="crowd-place">
+                                        <div className="crowd-icon">📍</div>
+                                        <div>
+                                            <h3>{place.name}</h3>
+                                            <p>{place.location || [place.city, place.state].filter(Boolean).join(", ")}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="crowd-status">
+                                        <span className={`status-dot ${statusClass}`}></span>
+                                        <span>{data?.crowd || "No recent reports"}</span>
+                                        {data?.total > 0 && (
+                                            <small>{data.total} report{data.total > 1 ? "s" : ""}</small>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        className="crowd-report-btn"
+                                        onClick={() => setSelectedPlace(place)}
+                                    >
+                                        📍 Report crowd
+                                    </button>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="crowd-card">
+                            <div className="crowd-place">
+                                <div className="crowd-icon">🔎</div>
+                                <div>
+                                    <h3>No destinations found</h3>
+                                    <p>Add destinations to the Firestore destinations collection.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="crowd-recommendation">
