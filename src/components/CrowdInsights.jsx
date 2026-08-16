@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 import { auth, db } from "../firebase";
@@ -24,18 +24,28 @@ function CrowdInsights() {
         const loadPlaces = async () => {
             try {
                 setLoadingPlaces(true);
-                const snapshot = await getDocs(collection(db, "destinations"));
-                const destinationList = snapshot.docs
-                    .map((item) => ({
-                        id: item.id,
-                        ...item.data(),
-                    }))
-                    .filter((place) => place.isActive !== false && place.status !== "pending");
+
+                // Tourist destinations are now stored in the same community
+                // collection as hidden gems, with placeType controlling where
+                // they appear. Only approved tourist destinations belong here.
+                const approvedTouristQuery = query(
+                    collection(db, "hiddenGems"),
+                    where("status", "==", "approved"),
+                    where("placeType", "==", "touristDestination")
+                );
+                const snapshot = await getDocs(approvedTouristQuery);
+
+                const destinationList = snapshot.docs.map((item) => ({
+                    id: item.id,
+                    ...item.data(),
+                }));
 
                 setPlaces(destinationList);
+                setMessage("");
             } catch (error) {
                 console.error("Destinations loading error:", error);
                 setMessage("Could not load destinations for crowd insights.");
+                setPlaces([]);
             } finally {
                 setLoadingPlaces(false);
             }
@@ -173,7 +183,7 @@ function CrowdInsights() {
                                 <div className="crowd-icon">🧭</div>
                                 <div>
                                     <h3>Loading destinations...</h3>
-                                    <p>Fetching destinations from TravelEase.</p>
+                                    <p>Fetching approved tourist destinations from TravelEase.</p>
                                 </div>
                             </div>
                         </div>
@@ -214,8 +224,8 @@ function CrowdInsights() {
                             <div className="crowd-place">
                                 <div className="crowd-icon">🔎</div>
                                 <div>
-                                    <h3>No destinations found</h3>
-                                    <p>Add destinations to the Firestore destinations collection.</p>
+                                    <h3>No approved tourist destinations found</h3>
+                                    <p>Approve a tourist destination from the Local Guide submissions to show it here.</p>
                                 </div>
                             </div>
                         </div>
