@@ -1,7 +1,10 @@
 import { useState } from "react";
 import "./NearbyPlaces.css";
 
-const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
+const OVERPASS_ENDPOINTS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+];
 const RADIUS_OPTIONS = [2, 5, 10, 25];
 
 function distanceKm(lat1, lon1, lat2, lon2) {
@@ -16,18 +19,20 @@ function category(tags = {}) {
     if (tags.historic) return "Historical";
     if (tags.natural) return tags.natural.replaceAll("_", " ");
     if (tags.leisure) return tags.leisure.replaceAll("_", " ");
+    if (tags.amenity) return tags.amenity.replaceAll("_", " ");
     return "Place";
 }
 function emoji(tags = {}) {
     if (tags.historic || tags.tourism === "museum") return "🏛️";
-    if (tags.amenity === "place_of_worship") return "🛕";
+    if (tags.amenity === "place_of_worship" || tags.tourism === "place_of_worship") return "🛕";
     if (tags.natural || tags.leisure === "park" || tags.leisure === "garden") return "🌿";
     if (tags.tourism === "viewpoint") return "🌄";
+    if (tags.tourism === "attraction") return "🎯";
     return "📍";
 }
 function point(element) {
-    if (element.lat && element.lon) return { lat: element.lat, lon: element.lon };
-    if (element.center?.lat && element.center?.lon) return { lat: element.center.lat, lon: element.center.lon };
+    if (Number.isFinite(element.lat) && Number.isFinite(element.lon)) return { lat: element.lat, lon: element.lon };
+    if (Number.isFinite(element.center?.lat) && Number.isFinite(element.center?.lon)) return { lat: element.center.lat, lon: element.center.lon };
     return null;
 }
 
@@ -38,32 +43,57 @@ function NearbyPlaces() {
     const [error, setError] = useState("");
 
     const findNearbyPlaces = () => {
-        setError(""); setLoading(true); setPlaces([]);
+        setError("");
+        setLoading(true);
+        setPlaces([]);
         if (!navigator.geolocation) {
-            setError("Location is not supported by this browser."); setLoading(false); return;
+            setError("Location is not supported by this browser.");
+            setLoading(false);
+            return;
         }
         navigator.geolocation.getCurrentPosition(async ({ coords }) => {
             try {
                 const { latitude, longitude } = coords;
-                const query = `[out:json][timeout:25];(nwr(around:${radius * 1000},${latitude},${longitude})[tourism];nwr(around:${radius * 1000},${latitude},${longitude})[historic];nwr(around:${radius * 1000},${latitude},${longitude})[natural];nwr(around:${radius * 1000},${latitude},${longitude})[leisure~"park|garden|nature_reserve"];nwr(around:${radius * 1000},${latitude},${longitude})[amenity="place_of_worship"];);out center tags;`;
-                const response = await fetch(OVERPASS_ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: query });
-                if (!response.ok) throw new Error("Nearby places request failed");
-                const data = await response.json();
+                const meters = radius * 1000;
+                const query = `[out:json][timeout:20];(nwr(around:${meters},${latitude},${longitude})[tourism];nwr(around:${meters},${latitude},${longitude})[historic];nwr(around:${meters},${latitude},${longitude})[natural];nwr(around:${meters},${latitude},${longitude})[leisure~"park|garden|nature_reserve"];nwr(around:${meters},${latitude},${longitude})[amenity="place_of_worship"];);out center tags qt;`;
+                let data = null;
+                for (const endpoint of OVERPASS_ENDPOINTS) {
+                    try {
+                        const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, { headers: { Accept: "application/json" } });
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        data = await response.json();
+                        break;
+                    } catch (requestError) {
+                        console.warn("Overpass endpoint failed:", requestError);
+                    }
+                }
+                if (!data) throw new Error("All nearby-place endpoints failed");
+
                 const seen = new Set();
-                const results = data.elements.map((element) => {
-                    const p = point(element); const name = element.tags?.name || element.tags?.name_en;
+                const results = (data.elements || []).map((element) => {
+                    const p = point(element);
+                    const name = element.tags?.name || element.tags?.name_en;
                     if (!p || !name) return null;
-                    const key = name.toLowerCase().trim(); if (seen.has(key)) return null; seen.add(key);
+                    const key = name.toLowerCase().trim();
+                    if (seen.has(key)) return null;
+                    seen.add(key);
                     return { id: `${element.type}-${element.id}`, name, category: category(element.tags), emoji: emoji(element.tags), distance: distanceKm(latitude, longitude, p.lat, p.lon), lat: p.lat, lon: p.lon };
                 }).filter(Boolean).sort((a, b) => a.distance - b.distance).slice(0, 12);
+
                 setPlaces(results);
                 if (!results.length) setError(`No mapped places found within ${radius} km. Try a larger radius.`);
             } catch (err) {
-                console.error(err); setError("Unable to discover nearby places right now. Please try again.");
-            } finally { setLoading(false); }
+                console.error("Nearby places error:", err);
+                setError("Unable to discover nearby places right now. Please try again.");
+            } finally {
+                setLoading(false);
+            }
         }, (geoError) => {
-            setLoading(false); setError(geoError.code === geoError.PERMISSION_DENIED ? "Location permission was denied. Allow location and try again." : "We could not get your location. Please try again.");
-        }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+            setLoading(false);
+            if (geoError.code === geoError.PERMISSION_DENIED) setError("Location permission was denied. Allow location and try again.");
+            else if (geoError.code === geoError.TIMEOUT) setError("Location request timed out. Please try again.");
+            else setError("We could not get your location. Please try again.");
+        }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
     };
 
     return (
