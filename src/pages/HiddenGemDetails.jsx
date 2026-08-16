@@ -8,19 +8,62 @@ const weatherLabels = { 0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Over
 const weatherEmoji = { 0:"☀️",1:"🌤️",2:"⛅",3:"☁️",45:"🌫️",48:"🌫️",51:"🌦️",53:"🌦️",55:"🌧️",61:"🌧️",63:"🌧️",65:"🌧️",71:"🌨️",73:"❄️",75:"❄️",80:"🌦️",81:"🌧️",82:"🌧️",95:"⛈️",96:"⛈️",99:"⛈️" };
 function formatDay(dateString){return new Date(`${dateString}T12:00:00`).toLocaleDateString("en-IN",{weekday:"short"});}
 
-async function geocodePlace(name, city, state){
-    const searches = [name, `${name}, ${city}`, `${city}, ${state}`];
-    for (const search of searches) {
-        const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(search)}&count=5&language=en&format=json&countryCode=IN`);
-        if (!response.ok) continue;
-        const data = await response.json();
-        if (data.results?.length) {
-            const preferred = data.results.find((item) => {
-                const admin = `${item.admin1 || ""} ${item.admin2 || ""}`.toLowerCase();
-                return admin.includes(state.toLowerCase()) || item.name.toLowerCase() === name.toLowerCase();
-            }) || data.results[0];
-            return { latitude: preferred.latitude, longitude: preferred.longitude };
+function extractCoordinatesFromUrl(url = "") {
+    try {
+        const decoded = decodeURIComponent(url);
+        const patterns = [
+            /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/,
+            /[?&](?:q|query|ll)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/,
+            /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/,
+        ];
+        for (const pattern of patterns) {
+            const match = decoded.match(pattern);
+            if (match) {
+                const latitude = Number(match[1]);
+                const longitude = Number(match[2]);
+                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
+                    return { latitude, longitude };
+                }
+            }
         }
+    } catch (err) {
+        console.warn("Could not parse map URL:", err);
+    }
+    return null;
+}
+
+async function geocodePlace(name, city, state) {
+    const searches = [`${name}, ${city}, ${state}, India`, `${name}, ${city}, India`, `${city}, ${state}, India`];
+
+    for (const search of searches) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=in&q=${encodeURIComponent(search)}`, { headers: { Accept: "application/json" } });
+            if (response.ok) {
+                const results = await response.json();
+                if (results.length) {
+                    const preferred = results.find((item) => item.display_name?.toLowerCase().includes(state.toLowerCase())) || results[0];
+                    const latitude = Number(preferred.lat);
+                    const longitude = Number(preferred.lon);
+                    if (Number.isFinite(latitude) && Number.isFinite(longitude)) return { latitude, longitude };
+                }
+            }
+        } catch (err) {
+            console.warn("Nominatim geocoding failed:", err);
+        }
+    }
+
+    // Final no-key fallback.
+    try {
+        const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=5&language=en&format=json&countryCode=IN`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.results?.length) {
+                const preferred = data.results.find((item) => `${item.admin1 || ""} ${item.admin2 || ""}`.toLowerCase().includes(state.toLowerCase())) || data.results[0];
+                return { latitude: preferred.latitude, longitude: preferred.longitude };
+            }
+        }
+    } catch (err) {
+        console.warn("Open-Meteo geocoding fallback failed:", err);
     }
     return null;
 }
@@ -49,18 +92,34 @@ function HiddenGemDetails(){
     useEffect(()=>{
         if(!gem)return;
         const loadLocationAndWeather=async()=>{
-            setLocationLoading(true); setWeatherLoading(true);
+            setLocationLoading(true); setWeatherLoading(true); setWeather(null);
             try{
-                let latitude=Number(gem.latitude); let longitude=Number(gem.longitude);
-                if(!Number.isFinite(latitude)||!Number.isFinite(longitude)){
-                    const found=await geocodePlace(gem.name,gem.city,gem.state);
-                    if(found){latitude=found.latitude;longitude=found.longitude;
-                        try{await updateDoc(doc(db,"hiddenGems",gem.id),{latitude,longitude,coordinatesUpdatedAt:new Date().toISOString()});setGem((old)=>({...old,latitude,longitude}));}
-                        catch(saveError){console.warn("Could not save coordinates:",saveError);}
+                let found = null;
+                const storedLatitude = Number(gem.latitude);
+                const storedLongitude = Number(gem.longitude);
+
+                if(Number.isFinite(storedLatitude) && Number.isFinite(storedLongitude)) {
+                    found = { latitude: storedLatitude, longitude: storedLongitude };
+                } else {
+                    // First try the exact Google Maps URL because it may contain the pin coordinates.
+                    found = extractCoordinatesFromUrl(gem.mapUrl);
+                    if (!found) found = await geocodePlace(gem.name, gem.city, gem.state);
+                }
+
+                if(!found) throw new Error("Location coordinates not found.");
+                const { latitude, longitude } = found;
+                setCoordinates(found);
+
+                // Cache coordinates for future page loads. This does not change the guide's mobile form.
+                if(!Number.isFinite(storedLatitude) || !Number.isFinite(storedLongitude)) {
+                    try {
+                        await updateDoc(doc(db,"hiddenGems",gem.id), { latitude, longitude, coordinatesUpdatedAt: new Date().toISOString() });
+                        setGem((old)=>({...old,latitude,longitude}));
+                    } catch(saveError) {
+                        console.warn("Could not save coordinates:",saveError);
                     }
                 }
-                if(!Number.isFinite(latitude)||!Number.isFinite(longitude))throw new Error("Location coordinates not found.");
-                setCoordinates({latitude,longitude});
+
                 const weatherResponse=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=3&timezone=auto`);
                 if(!weatherResponse.ok)throw new Error("Weather request failed.");
                 setWeather(await weatherResponse.json());
