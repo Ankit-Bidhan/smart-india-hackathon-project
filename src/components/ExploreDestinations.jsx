@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import PlaceCard from "./PlaceCard";
-import places from "../data/places";
 import { db } from "../firebase";
 
 function ExploreDestinations() {
@@ -34,8 +33,6 @@ function ExploreDestinations() {
         loadCommunityDestinations();
     }, []);
 
-    const allPlaces = [...communityPlaces, ...places];
-
     return (
         <section className="explore-section" id="explore">
             <div className="section-heading">
@@ -47,7 +44,9 @@ function ExploreDestinations() {
             </div>
 
             <div className="places-grid">
-                {allPlaces.map((place) => <PlaceCard key={`${place.firestoreId || "static"}-${place.id}`} place={place} />)}
+                {communityPlaces.map((place) => (
+                    <PlaceCard key={place.id} place={place} />
+                ))}
             </div>
         </section>
     );
