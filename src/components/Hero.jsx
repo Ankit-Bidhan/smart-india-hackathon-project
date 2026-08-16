@@ -1,3 +1,4 @@
+import adventureMap from "../assets/adventure-map.png";
 function Hero() {
     return (
         <section className="hero" id="home">
@@ -47,7 +48,7 @@ function Hero() {
                 <div className="visual-card">
 
                     <div className="mountain">
-                        🏔️
+                        <img src={adventureMap} alt="Adventure map" />
                     </div>
 
                     <div className="destination-info">
