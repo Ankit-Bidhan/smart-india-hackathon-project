@@ -1,0 +1,155 @@
+.gem-extras-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.gem-extra-card {
+  background: #ffffff;
+  border: 1px solid #dfe9e5;
+  border-radius: 20px;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.gem-extra-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.gem-extra-header h2 {
+  margin: 0;
+}
+
+.gem-coordinate-badge {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #eef7f3;
+  color: #13795b;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.gem-map-frame {
+  width: 100%;
+  height: 330px;
+  border: 0;
+  border-radius: 14px;
+  display: block;
+}
+
+.gem-extra-loading,
+.gem-extra-empty {
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #687570;
+  padding: 24px;
+  background: #f7faf9;
+  border-radius: 14px;
+}
+
+.gem-current-weather {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #f7faf9;
+}
+
+.gem-weather-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.gem-current-weather strong {
+  display: block;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.gem-current-weather span {
+  display: block;
+  color: #687570;
+  margin-top: 5px;
+}
+
+.gem-weather-stats {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0;
+  color: #687570;
+  font-size: 14px;
+}
+
+.gem-weather-stats strong {
+  color: #17211f;
+}
+
+.gem-forecast {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.gem-forecast-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 8px;
+  border: 1px solid #e5ece9;
+  border-radius: 13px;
+  text-align: center;
+}
+
+.gem-forecast-day span {
+  font-size: 24px;
+}
+
+.gem-forecast-day small {
+  color: #687570;
+}
+
+.gem-weather-source {
+  margin-top: 14px;
+  color: #8a9691;
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .gem-extras-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gem-extra-card {
+    padding: 18px;
+  }
+
+  .gem-map-frame {
+    height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gem-extra-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gem-map-frame {
+    height: 240px;
+  }
+
+  .gem-current-weather strong {
+    font-size: 30px;
+  }
+}
