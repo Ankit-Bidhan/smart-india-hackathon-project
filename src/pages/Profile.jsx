@@ -77,6 +77,20 @@ function Profile() {
                         );
                         const contributionsSnap =
                             await getDocs(contributionsQuery);
+                        console.log(
+                            "AUTH UID:",
+                            currentUser.uid
+                        );
+
+                        console.log(
+                            "CONTRIBUTIONS:",
+                            contributionsSnap.docs.map(
+                                (item) => ({
+                                    id: item.id,
+                                    data: item.data()
+                                })
+                            )
+                        );
                         const contributionList =
                             contributionsSnap.docs.map((item) => ({
                                 id: item.id,
@@ -651,6 +665,14 @@ function Profile() {
                                                     ❌ Not Approved
                                                 </div>
                                             )}
+                                            <button
+                                                className="guide-apply-btn"
+                                                onClick={() =>
+                                                    setEditingGem(gem)
+                                                }
+                                            >
+                                                ✏️ Edit / Add Photos
+                                            </button>
                                         </div>
                                     </article>
                                 ))}

@@ -8,6 +8,7 @@ function HiddenGemsPage() {
     const [gems, setGems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [selectedGem, setSelectedGem] = useState(null);
 
     useEffect(() => {
 
@@ -187,23 +188,9 @@ function HiddenGemsPage() {
 
                                     <button
                                         className="gem-button"
-                                        onClick={() => {
-
-                                            if (
-                                                gem.location?.latitude &&
-                                                gem.location?.longitude
-                                            ) {
-
-                                                window.open(
-                                                    `https://www.google.com/maps?q=${gem.location.latitude},${gem.location.longitude}`,
-                                                    "_blank"
-                                                );
-
-                                            }
-
-                                        }}
+                                        onClick={() => setSelectedGem(gem)}
                                     >
-                                        View Location →
+                                        Discover →
                                     </button>
 
                                 </div>

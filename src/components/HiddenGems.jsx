@@ -7,9 +7,9 @@ import { db } from "../firebase";
 
 function HiddenGems() {
     const navigate = useNavigate();
-
     const [communityGems, setCommunityGems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedGem, setSelectedGem] = useState(null);
 
     useEffect(() => {
         const loadApprovedGems = async () => {
@@ -66,6 +66,7 @@ function HiddenGems() {
     ];
 
     return (
+        <>
         <section
             className="hidden-gems-section"
             id="hidden-gems"
@@ -155,17 +156,7 @@ function HiddenGems() {
 
                                 <button
                                     className="gem-button"
-                                    onClick={() => {
-                                        if (
-                                            place.latitude &&
-                                            place.longitude
-                                        ) {
-                                            window.open(
-                                                `https://www.google.com/maps?q=${place.latitude},${place.longitude}`,
-                                                "_blank"
-                                            );
-                                        }
-                                    }}
+                                    onClick={() => setSelectedGem(place)}
                                 >
                                     Discover →
                                 </button>
@@ -179,6 +170,82 @@ function HiddenGems() {
                 </div>
             )}
         </section>
+       
+        {selectedGem && (
+            <div
+                className="gem-detail-overlay"
+                onClick={() => setSelectedGem(null)}
+            >
+                <div
+                    className="gem-detail-modal"
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    <button
+                        className="gem-detail-close"
+                        onClick={() => setSelectedGem(null)}
+                    >
+                        ✕
+                    </button>
+
+                    {selectedGem.image ? (
+                        <img
+                            src={selectedGem.image}
+                            alt={selectedGem.name}
+                            className="gem-detail-image"
+                        />
+                    ) : (
+                        <div className="gem-no-image">
+                            💎
+                        </div>
+                    )}
+
+                    <div className="gem-detail-content">
+
+                        <span className="gem-location">
+                            📍 {selectedGem.location}
+                        </span>
+
+                        <h2>{selectedGem.name}</h2>
+
+                        <p>
+                            {selectedGem.description ||
+                                "A lesser-known destination waiting to be discovered."}
+                        </p>
+
+                        {selectedGem.category && (
+                            <p>
+                                <strong>✨ Category:</strong>{" "}
+                                {selectedGem.category}
+                            </p>
+                        )}
+
+                        {selectedGem.bestTime && (
+                            <p>
+                                <strong>🕐 Best time:</strong>{" "}
+                                {selectedGem.bestTime}
+                            </p>
+                        )}
+
+                        {selectedGem.latitude &&
+                            selectedGem.longitude && (
+                                <button
+                                    className="gem-button"
+                                    onClick={() =>
+                                        window.open(
+                                            `https://www.google.com/maps?q=${selectedGem.latitude},${selectedGem.longitude}`,
+                                            "_blank"
+                                        )
+                                    }
+                                >
+                                    📍 View on Map
+                                </button>
+                            )}
+
+                    </div>
+                </div>
+            </div>
+        )} 
+        </>
     );
 }
 

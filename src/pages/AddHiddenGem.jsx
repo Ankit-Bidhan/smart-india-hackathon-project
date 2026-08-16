@@ -25,7 +25,7 @@ function AddHiddenGem() {
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [photo, setPhoto] = useState(null);
+    const [photos, setPhotos] = useState([]);
     const [uploadStatus, setUploadStatus] = useState("");
 
     const [form, setForm] = useState({
@@ -181,63 +181,58 @@ function AddHiddenGem() {
 
 
         try {
-
-            let imageUrl = "";
-
-            if (photo) {
-
-                setUploadStatus("📸 Uploading photo...");
-
-                const cloudinaryUrl =
-                    "https://api.cloudinary.com/v1_1/kbtn87n5/image/upload";
-
-                const uploadData = new FormData();
-
-                uploadData.append("file", photo);
-
-                uploadData.append(
-                    "upload_preset",
-                    "travelease_hidden_gems"
-                );
-
-                const uploadResponse = await fetch(
-                    cloudinaryUrl,
-                    {
-                        method: "POST",
-                        body: uploadData,
-                    }
-                );
-
-                if (!uploadResponse.ok) {
-
-                    const errorText =
-                        await uploadResponse.text();
-
-                    console.error(
-                        "Cloudinary HTTP status:",
-                        uploadResponse.status
-                    );
-
-                    console.error(
-                        "Cloudinary response:",
-                        errorText
-                    );
-
+            let imageUrls = [];
+            if (photos.length > 0) {
+                setUploadStatus("📸 Uploading photos...");
+                if (photos.length > 5) {
                     throw new Error(
-                        `Cloudinary upload failed (${uploadResponse.status})`
+                        "You can upload maximum 5 photos."
                     );
                 }
+                imageUrls = await Promise.all(
+                    photos.map(async (photo) => {
+                        const uploadData = new FormData();
+                        uploadData.append(
+                            "file",
+                            photo
+                        );
+                        uploadData.append(
+                            "upload_preset",
+                            "travelease_hidden_gems"
+                        );
+                        const uploadResponse =
+                            await fetch(
+                                "https://api.cloudinary.com/v1_1/kbtn87n5/image/upload",
+                                {
+                                    method: "POST",
+                                    body: uploadData,
+                                }
+                            );
+                        if (!uploadResponse.ok) {
+                            const errorText =
+                                await uploadResponse.text();
 
-                const uploadResult =
-                    await uploadResponse.json();
+                            console.error(
+                                "Cloudinary error:",
+                                errorText
+                            );
+                            throw new Error(
+                                "Photo upload failed."
+                            );
+                        }
+                        const uploadResult =
+                            await uploadResponse.json();
 
-                imageUrl =
-                    uploadResult.secure_url || "";
-
-                setUploadStatus("✅ Photo uploaded!");
+                        return uploadResult.secure_url;
+                    })
+                );
+                setUploadStatus(
+                    "✅ Photos uploaded!"
+                );
             }
-
-            setUploadStatus("💎 Submitting hidden gem...");
+            setUploadStatus(
+                "💎 Submitting hidden gem..."
+            );
              
             await addDoc(
                 collection(db, "hiddenGems"),
@@ -252,7 +247,9 @@ function AddHiddenGem() {
                         form.whySpecial.trim(),
                     bestTime:
                         form.bestTime.trim(),
-                    image: imageUrl,
+                    images: imageUrls,
+                    // First image ko old system ke liye bhi rakhenge
+                    image: imageUrls[0] || "",
                     location: {
                         latitude,
                         longitude,
@@ -292,7 +289,7 @@ function AddHiddenGem() {
                 longitude: "",
             });
 
-            setPhoto(null);
+            setPhotos([]);
 
         } catch (err) {
 
@@ -551,14 +548,15 @@ function AddHiddenGem() {
                         <input
                             type="file"
                             accept="image/*"
+                            multiple
                             onChange={(event) =>
-                                setPhoto(
-                                    event.target.files?.[0] || null
+                                setPhotos(
+                                    Array.from(event.target.files || [])
                                 )
                             }
                         />
                         <small>
-                            You can add a photo now or add it later from your profile.
+                            Add up to 5 photos. You can also add photos later.
                         </small>
                     </div>
 
