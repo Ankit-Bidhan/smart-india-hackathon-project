@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
-
 import { db } from "../firebase";
 
 function HiddenGemsPage() {
@@ -13,18 +12,10 @@ function HiddenGemsPage() {
     useEffect(() => {
         const loadHiddenGems = async () => {
             try {
-                const gemsQuery = query(
-                    collection(db, "hiddenGems"),
-                    where("status", "==", "approved")
-                );
-
-                const snapshot = await getDocs(gemsQuery);
-
-                const gemList = snapshot.docs.map((item) => ({
-                    id: item.id,
-                    ...item.data(),
-                }));
-
+                const snapshot = await getDocs(query(collection(db, "hiddenGems"), where("status", "==", "approved")));
+                const gemList = snapshot.docs
+                    .map((item) => ({ id: item.id, ...item.data() }))
+                    .filter((item) => item.placeType !== "touristDestination");
                 setGems(gemList);
             } catch (err) {
                 console.error("Hidden gems loading error:", err);
@@ -33,7 +24,6 @@ function HiddenGemsPage() {
                 setLoading(false);
             }
         };
-
         loadHiddenGems();
     }, []);
 
@@ -41,82 +31,28 @@ function HiddenGemsPage() {
         <main className="explore-page">
             <div className="explore-page-header">
                 <p className="section-label">COMMUNITY DISCOVERY</p>
-
                 <h1>Discover Hidden Gems 💎</h1>
-
-                <p>
-                    Explore lesser-known places discovered and recommended by
-                    local contributors.
-                </p>
+                <p>Explore lesser-known places discovered and recommended by local contributors.</p>
             </div>
 
-            {loading && (
-                <div className="no-results">
-                    <div>💎</div>
-                    <h3>Discovering hidden gems...</h3>
-                </div>
-            )}
-
-            {error && (
-                <div className="no-results">
-                    <div>⚠️</div>
-                    <h3>{error}</h3>
-                </div>
-            )}
-
-            {!loading && !error && gems.length === 0 && (
-                <div className="no-results">
-                    <div>💎</div>
-                    <h3>No hidden gems yet</h3>
-                    <p>
-                        Local guides are discovering amazing places. Check back
-                        soon!
-                    </p>
-                </div>
-            )}
+            {loading && <div className="no-results"><div>💎</div><h3>Discovering hidden gems...</h3></div>}
+            {error && <div className="no-results"><div>⚠️</div><h3>{error}</h3></div>}
+            {!loading && !error && gems.length === 0 && <div className="no-results"><div>💎</div><h3>No hidden gems yet</h3><p>Local guides are discovering amazing places. Check back soon!</p></div>}
 
             {!loading && !error && gems.length > 0 && (
                 <div className="places-grid">
                     {gems.map((gem) => (
                         <article className="gem-card" key={gem.id}>
                             <div className="gem-image">
-                                {gem.image || gem.images?.[0] ? (
-                                    <img
-                                        src={gem.image || gem.images[0]}
-                                        alt={gem.name}
-                                    />
-                                ) : (
-                                    <div className="gem-no-image">💎</div>
-                                )}
-
-                                <span className="gem-badge">
-                                    💎 Hidden Gem
-                                </span>
+                                {gem.image || gem.images?.[0] ? <img src={gem.image || gem.images[0]} alt={gem.name} /> : <div className="gem-no-image">💎</div>}
+                                <span className="gem-badge">💎 Hidden Gem</span>
                             </div>
-
                             <div className="gem-content">
-                                <span className="gem-location">
-                                    📍 {gem.city}, {gem.state}
-                                </span>
-
+                                <span className="gem-location">📍 {gem.city}, {gem.state}</span>
                                 <h3>{gem.name}</h3>
-
                                 <p>{gem.description}</p>
-
-                                <div className="gem-meta">
-                                    <span>✨ {gem.category}</span>
-                                    <span>🕐 {gem.bestTime}</span>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    className="gem-button"
-                                    onClick={() =>
-                                        navigate(`/hidden-gem/${gem.id}`)
-                                    }
-                                >
-                                    Discover →
-                                </button>
+                                <div className="gem-meta"><span>✨ {gem.category}</span><span>🕐 {gem.bestTime}</span></div>
+                                <button type="button" className="gem-button" onClick={() => navigate(`/hidden-gem/${gem.id}`)}>Discover →</button>
                             </div>
                         </article>
                     ))}
