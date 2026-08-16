@@ -7,6 +7,7 @@ import {
     doc,
     getDoc,
     addDoc,
+    updateDoc,
     query,
     where,
     getDocs,
@@ -24,13 +25,14 @@ function Profile() {
     const [application, setApplication] = useState(null);
     const [contributions, setContributions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showApplication, setShowApplication] =
-        useState(false);
+    const [showApplication, setShowApplication] = useState(false);
     const [reason, setReason] = useState("");
-    const [submitting, setSubmitting] =
-        useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [editingGem, setEditingGem] = useState(null);
+    const [editPhotos, setEditPhotos] = useState([]);
+    const [savingPhotos, setSavingPhotos] = useState(false);
 
     // =========================
     // LOAD USER
@@ -167,7 +169,154 @@ function Profile() {
 
     }, [navigate]);
 
+    // =========================
+    // ADD PHOTOS TO HIDDEN GEM
+    // =========================
 
+    const handleAddPhotos = async () => {
+
+        if (!editingGem) return;
+
+        if (editPhotos.length === 0) {
+            setError("Please select at least one photo.");
+            return;
+        }
+
+        if (editPhotos.length > 5) {
+            setError("You can upload maximum 5 photos at a time.");
+            return;
+        }
+
+        setSavingPhotos(true);
+        setError("");
+        setSuccess("");
+
+        try {
+
+            // =========================
+            // UPLOAD PHOTOS TO CLOUDINARY
+            // =========================
+
+            const uploadedUrls = await Promise.all(
+
+                editPhotos.map(async (photo) => {
+
+                    const formData = new FormData();
+
+                    formData.append("file", photo);
+
+                    formData.append(
+                        "upload_preset",
+                        "travelease_hidden_gems"
+                    );
+
+                    const response = await fetch(
+                        "https://api.cloudinary.com/v1_1/kbtn87n5/image/upload",
+                        {
+                            method: "POST",
+                            body: formData,
+                        }
+                    );
+
+                    const result =
+                        await response.json();
+
+                    if (!response.ok) {
+
+                        console.error(
+                            "Cloudinary upload error:",
+                            result
+                        );
+
+                        throw new Error(
+                            result?.error?.message ||
+                            "Image upload failed"
+                        );
+                    }
+
+                    return result.secure_url;
+                })
+            );
+
+            // =========================
+            // OLD PHOTOS
+            // =========================
+
+            const oldImages =
+                Array.isArray(editingGem.images)
+                    ? editingGem.images
+                    : editingGem.image
+                        ? [editingGem.image]
+                        : [];
+
+            // =========================
+            // COMBINE OLD + NEW
+            // =========================
+
+            const allImages = [
+                ...oldImages,
+                ...uploadedUrls,
+            ];
+
+            // =========================
+            // UPDATE FIRESTORE
+            // =========================
+
+            await updateDoc(
+                doc(
+                    db,
+                    "hiddenGems",
+                    editingGem.id
+                ),
+                {
+                    images: allImages,
+                    image: allImages[0] || "",
+                    updatedAt: serverTimestamp(),
+                }
+            );
+
+            // =========================
+            // UPDATE PROFILE UI
+            // =========================
+
+            setContributions((previous) =>
+                previous.map((gem) =>
+                    gem.id === editingGem.id
+                        ? {
+                            ...gem,
+                            images: allImages,
+                            image: allImages[0] || "",
+                        }
+                        : gem
+                )
+            );
+
+            setSuccess(
+                "Photos added successfully! 📸"
+            );
+
+            setEditingGem(null);
+            setEditPhotos([]);
+
+        } catch (err) {
+
+            console.error(
+                "Add photos error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                "Unable to add photos. Please try again."
+            );
+
+        } finally {
+
+            setSavingPhotos(false);
+
+        }
+    };
+    
     // =========================
     // APPLY FOR LOCAL GUIDE
     // =========================
@@ -680,6 +829,104 @@ function Profile() {
                         </section>
                     )}
 
+                {editingGem && (
+
+                    <div className="edit-gem-overlay">
+
+                        <div className="edit-gem-modal">
+
+                            <button
+                                className="edit-gem-close"
+                                onClick={() => {
+                                    setEditingGem(null);
+                                    setEditPhotos([]);
+                                }}
+                            >
+                                ✕
+                            </button>
+
+                            <p className="section-label">
+                                COMMUNITY CONTRIBUTION
+                            </p>
+
+                            <h2>
+                                Add Photos 📸
+                            </h2>
+
+                            <p>
+                                Add more photos to{" "}
+                                <strong>
+                                    {editingGem.name}
+                                </strong>
+                            </p>
+
+                            {editingGem.images?.length > 0 && (
+
+                                <div className="existing-gem-photos">
+
+                                    {editingGem.images.map(
+                                        (image, index) => (
+
+                                            <img
+                                                key={index}
+                                                src={image}
+                                                alt={`${editingGem.name} ${index + 1}`}
+                                            />
+
+                                        )
+                                    )}
+
+                                </div>
+
+                            )}
+
+                            <label className="edit-photo-label">
+                                Select photos
+                            </label>
+
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={(event) =>
+                                    setEditPhotos(
+                                        Array.from(
+                                            event.target.files || []
+                                        )
+                                    )
+                                }
+                            />
+
+                            <small>
+                                You can add up to 5 photos at once.
+                            </small>
+
+                            {editPhotos.length > 0 && (
+
+                                <p className="selected-photo-count">
+                                    📸 {editPhotos.length} new photo
+                                    {editPhotos.length > 1
+                                        ? "s"
+                                        : ""} selected
+                                </p>
+
+                            )}
+
+                            <button
+                                className="guide-submit-btn"
+                                onClick={handleAddPhotos}
+                                disabled={savingPhotos}
+                            >
+                                {savingPhotos
+                                    ? "Uploading..."
+                                    : "Upload Photos"}
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                )}
                 {profile?.role === "admin" && (
                     <section className="verified-guide-card">
                         <div className="verified-icon">

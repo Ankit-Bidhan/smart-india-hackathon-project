@@ -141,8 +141,7 @@ function AddHiddenGem() {
             !form.description.trim() ||
             !form.whySpecial.trim() ||
             !form.bestTime.trim() ||
-            !form.latitude ||
-            !form.longitude
+            !form.mapUrl.trim()
         ) {
 
             setError(
@@ -152,33 +151,7 @@ function AddHiddenGem() {
             return;
         }
 
-
-        const latitude =
-            Number(form.latitude);
-
-        const longitude =
-            Number(form.longitude);
-
-
-        if (
-            Number.isNaN(latitude) ||
-            Number.isNaN(longitude) ||
-            latitude < -90 ||
-            latitude > 90 ||
-            longitude < -180 ||
-            longitude > 180
-        ) {
-
-            setError(
-                "Please enter valid latitude and longitude."
-            );
-
-            return;
-        }
-
-
         setSubmitting(true);
-
 
         try {
             let imageUrls = [];
@@ -250,10 +223,7 @@ function AddHiddenGem() {
                     images: imageUrls,
                     // First image ko old system ke liye bhi rakhenge
                     image: imageUrls[0] || "",
-                    location: {
-                        latitude,
-                        longitude,
-                    },
+                    mapUrl: form.mapUrl.trim(),
                     submittedBy: user.uid,
                     submittedByName:
                         profile?.name ||
@@ -285,8 +255,7 @@ function AddHiddenGem() {
                 description: "",
                 whySpecial: "",
                 bestTime: "",
-                latitude: "",
-                longitude: "",
+                mapUrl: "",
             });
 
             setPhotos([]);
@@ -570,58 +539,30 @@ function AddHiddenGem() {
                         </h2>
 
                         <p>
-                            Add the exact coordinates of the
-                            place so travellers can navigate
-                            to it.
+                            Paste the Google Maps link of the exact place.
                         </p>
 
+                        <div className="gem-field full">
 
-                        <div className="gem-grid">
+                            <label>
+                                Google Maps Location *
+                            </label>
 
-                            <div className="gem-field">
-
-                                <label>
-                                    Latitude *
-                                </label>
-
-                                <input
-                                    type="number"
-                                    name="latitude"
-                                    value={form.latitude}
-                                    onChange={handleChange}
-                                    placeholder="e.g. 29.9695"
-                                    step="any"
-                                />
-
-                            </div>
-
-
-                            <div className="gem-field">
-
-                                <label>
-                                    Longitude *
-                                </label>
-
-                                <input
-                                    type="number"
-                                    name="longitude"
-                                    value={form.longitude}
-                                    onChange={handleChange}
-                                    placeholder="e.g. 76.8783"
-                                    step="any"
-                                />
-
-                            </div>
+                            <input
+                                type="url"
+                                name="mapUrl"
+                                value={form.mapUrl}
+                                onChange={handleChange}
+                                placeholder="https://maps.google.com/..."
+                            />
 
                         </div>
 
-
                         <div className="location-tip">
 
-                            💡 You can get coordinates from
-                            Google Maps by right-clicking the
-                            exact location and copying the
-                            coordinates.
+                            💡 <strong>Mobile users:</strong> Open Google Maps,
+                            find the exact place, tap Share → Copy link and
+                            paste that link here.
 
                         </div>
 
