@@ -1,5 +1,14 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import adventureMap from "../assets/adventure-map.png";
+
 function Hero() {
+    const navigate = useNavigate();
+    const [search, setSearch] = useState("");
+
+    const handleExplore = () => {
+        navigate("/explore");
+    };
     return (
         <section className="hero" id="home">
 
@@ -26,10 +35,12 @@ function Hero() {
 
                     <input
                         type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
                         placeholder="Where do you want to go?"
                     />
 
-                    <button>
+                    <button onClick={handleExplore}>
                         Explore
                     </button>
                 </div>
