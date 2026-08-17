@@ -21,9 +21,7 @@
   margin-bottom: 18px;
 }
 
-.gem-extra-header h2 {
-  margin: 0;
-}
+.gem-extra-header h2 { margin: 0; }
 
 .gem-coordinate-badge {
   padding: 7px 10px;
@@ -64,22 +62,9 @@
   background: #f7faf9;
 }
 
-.gem-weather-icon {
-  font-size: 48px;
-  line-height: 1;
-}
-
-.gem-current-weather strong {
-  display: block;
-  font-size: 34px;
-  line-height: 1.1;
-}
-
-.gem-current-weather span {
-  display: block;
-  color: #687570;
-  margin-top: 5px;
-}
+.gem-weather-icon { font-size: 48px; line-height: 1; }
+.gem-current-weather strong { display: block; font-size: 34px; line-height: 1.1; }
+.gem-current-weather span { display: block; color: #687570; margin-top: 5px; }
 
 .gem-weather-stats {
   display: grid;
@@ -89,9 +74,7 @@
   font-size: 14px;
 }
 
-.gem-weather-stats strong {
-  color: #17211f;
-}
+.gem-weather-stats strong { color: #17211f; }
 
 .gem-forecast {
   display: grid;
@@ -110,46 +93,220 @@
   text-align: center;
 }
 
-.gem-forecast-day span {
-  font-size: 24px;
+.gem-forecast-day span { font-size: 24px; }
+.gem-forecast-day small { color: #687570; }
+.gem-weather-source { margin-top: 14px; color: #8a9691; font-size: 11px; text-align: center; }
+
+/* =========================
+   HIDDEN GEM DETAILS PAGE
+========================= */
+
+.gem-details-page {
+  min-height: calc(100vh - 72px);
+  padding: 40px 6% 100px;
+  background: #f7faf9;
 }
 
-.gem-forecast-day small {
-  color: #687570;
+.gem-details-container {
+  width: min(1200px, 100%);
+  margin: 0 auto;
 }
 
-.gem-weather-source {
-  margin-top: 14px;
-  color: #8a9691;
-  font-size: 11px;
+.gem-details-back {
+  border: none;
+  background: transparent;
+  color: #13795b;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 22px;
+}
+
+.gem-details-hero {
+  height: 480px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  margin-bottom: 42px;
+  background: #dfeae6;
+}
+
+.gem-details-hero > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.gem-details-hero-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 55px;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0,0,0,.78));
+}
+
+.gem-details-hero-overlay span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.gem-details-hero-overlay h1 {
+  margin: 8px 0 7px;
+  font-size: clamp(40px, 6vw, 70px);
+  line-height: 1.05;
+  letter-spacing: -2px;
+}
+
+.gem-details-hero-overlay p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.gem-details-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, .7fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.gem-details-main {
+  min-width: 0;
+}
+
+.gem-details-category {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #13795b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.gem-details-main h2 {
+  margin: 0 0 18px;
+  font-size: 38px;
+  letter-spacing: -.8px;
+}
+
+.gem-details-description {
+  max-width: 760px;
+  margin: 0 0 28px;
+  color: #61706b;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.gem-details-card {
+  background: #fff;
+  border: 1px solid #dfe8e4;
+  border-radius: 18px;
+  padding: 24px;
+}
+
+.gem-detail-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 0;
+  border-bottom: 1px solid #edf1ef;
+  font-size: 13px;
+}
+
+.gem-detail-item:first-child { padding-top: 0; }
+.gem-detail-item span { color: #71807b; }
+.gem-detail-item strong { text-align: right; color: #29322f; }
+
+.gem-view-map-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 9px;
+  background: #13795b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.gem-view-map-btn:hover { background: #0f674d; }
+
+.gem-details-gallery { margin-top: 45px; }
+.gem-details-gallery h2 { margin-bottom: 22px; }
+
+.gem-details-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.gem-details-photo-grid img {
+  width: 100%;
+  height: 210px;
+  display: block;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.gem-details-no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  background: #eef7f3;
+}
+
+.gem-details-loading,
+.gem-details-error {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  padding: 30px;
+}
+
+.gem-details-loading { color: #71807b; }
+.gem-details-icon { font-size: 48px; margin-bottom: 12px; }
+.gem-details-error h1 { margin-bottom: 8px; }
+.gem-details-error p { color: #71807b; margin-bottom: 18px; }
+
+.gem-details-back-btn {
+  border: none;
+  border-radius: 9px;
+  padding: 12px 18px;
+  background: #13795b;
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (max-width: 850px) {
+  .gem-details-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .gem-details-page { padding: 30px 5% 70px; }
+  .gem-details-hero { height: 360px; border-radius: 18px; }
+  .gem-details-hero-overlay { padding: 28px; }
+  .gem-details-hero-overlay h1 { font-size: 42px; }
+  .gem-details-main h2 { font-size: 32px; }
+  .gem-details-card { padding: 20px; }
+  .gem-details-photo-grid { grid-template-columns: 1fr; }
+  .gem-details-photo-grid img { height: 230px; }
 }
 
 @media (max-width: 800px) {
-  .gem-extras-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .gem-extra-card {
-    padding: 18px;
-  }
-
-  .gem-map-frame {
-    height: 280px;
-  }
+  .gem-extras-grid { grid-template-columns: 1fr; }
+  .gem-extra-card { padding: 18px; }
+  .gem-map-frame { height: 280px; }
 }
 
 @media (max-width: 480px) {
-  .gem-extra-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .gem-map-frame {
-    height: 240px;
-  }
-
-  .gem-current-weather strong {
-    font-size: 30px;
-  }
+  .gem-extra-header { align-items: flex-start; flex-direction: column; }
+  .gem-map-frame { height: 240px; }
+  .gem-current-weather strong { font-size: 30px; }
 }
