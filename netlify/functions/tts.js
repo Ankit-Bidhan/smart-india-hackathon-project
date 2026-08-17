@@ -21,12 +21,20 @@ export default async (request) => {
 
     try {
         const { text } = await request.json();
-        const apiKey = process.env.ELEVENLABS_API_KEY;
+        const elevenApiKey = process.env.ELEVENLABS_API_KEY;
         const voiceId = process.env.ELEVENLABS_VOICE_ID;
+        const geminiApiKey = process.env.GEMINI_API_KEY;
 
-        if (!apiKey || !voiceId) {
+        if (!elevenApiKey || !voiceId) {
             return Response.json(
-                { error: "Voice service is not configured yet." },
+                { error: "ElevenLabs voice service is not configured. Check ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID in Netlify." },
+                { status: 503, headers }
+            );
+        }
+
+        if (!geminiApiKey) {
+            return Response.json(
+                { error: "GEMINI_API_KEY is missing for Hindi narration." },
                 { status: 503, headers }
             );
         }
@@ -37,32 +45,44 @@ export default async (request) => {
 
         const cleanText = text.trim().slice(0, 3000);
 
-        // Keep the AI's visible response in English, but create a separate
-        // Hindi narration for ElevenLabs. This gives users an English UI/text
-        // response while the voice sounds like a Hindi travel guide.
-        let hindiText = cleanText;
+        let hindiText = "";
+
         try {
             const translation = await ai.interactions.create({
                 model: "gemini-3.6-flash",
                 input: cleanText,
                 system_instruction: `
-Translate the following travel-guide response from English into natural spoken Hindi for audio narration.
+Translate this TravelEase travel-guide response from English into natural spoken Hindi for audio narration.
 
 Rules:
-- Translate the meaning completely; do not summarize or omit information.
-- Write ONLY the Hindi narration, with no introduction or explanation.
-- Use natural conversational Hindi, as if a friendly Indian travel guide is speaking to a traveller.
-- Keep destination names, proper nouns, hotel/place names, URLs and commonly used English travel terms when translating them would sound unnatural.
-- Use Devanagari Hindi for the narration.
-- Do not use Markdown symbols, headings, asterisks or bullet formatting.
-- Keep the same approximate length and information as the original.
+- Translate the complete meaning. Do not summarize or omit information.
+- Return ONLY the Hindi narration.
+- Use natural conversational Hindi, like a friendly Indian travel guide speaking to a traveller.
+- Use Devanagari Hindi.
+- Keep destination names, proper nouns and place names where appropriate.
+- Do not use Markdown, headings, bullets, quotes or explanations.
+- Preserve the same useful details and approximately the same length.
                 `,
             });
-            if (translation.output_text?.trim()) {
-                hindiText = translation.output_text.trim();
-            }
+
+            hindiText = translation.output_text?.trim() || "";
         } catch (translationError) {
-            console.warn("Hindi narration translation failed; using original text:", translationError);
+            console.error("Hindi translation error:", translationError);
+            return Response.json(
+                {
+                    error: "Hindi narration generation failed.",
+                    stage: "gemini-translation",
+                    details: translationError?.message || String(translationError),
+                },
+                { status: 502, headers }
+            );
+        }
+
+        if (!hindiText) {
+            return Response.json(
+                { error: "Gemini returned no Hindi narration.", stage: "gemini-translation" },
+                { status: 502, headers }
+            );
         }
 
         const response = await fetch(
@@ -70,7 +90,7 @@ Rules:
             {
                 method: "POST",
                 headers: {
-                    "xi-api-key": apiKey,
+                    "xi-api-key": elevenApiKey,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
@@ -82,14 +102,21 @@ Rules:
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("ElevenLabs error:", errorText);
+            console.error("ElevenLabs error:", response.status, errorText);
+
             return Response.json(
-                { error: "Unable to generate voice right now." },
+                {
+                    error: "ElevenLabs voice generation failed.",
+                    stage: "elevenlabs",
+                    status: response.status,
+                    details: errorText,
+                },
                 { status: response.status, headers }
             );
         }
 
         const audio = await response.arrayBuffer();
+
         return new Response(audio, {
             status: 200,
             headers: {
@@ -100,8 +127,13 @@ Rules:
         });
     } catch (error) {
         console.error("TTS error:", error);
+
         return Response.json(
-            { error: "Unable to generate voice right now." },
+            {
+                error: "Unable to generate voice right now.",
+                stage: "tts",
+                details: error?.message || String(error),
+            },
             { status: 500, headers }
         );
     }
