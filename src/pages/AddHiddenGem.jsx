@@ -89,9 +89,13 @@ function AddHiddenGem() {
                 setUploadStatus("✅ Photos uploaded!");
             }
 
-            setUploadStatus(form.placeType === "touristDestination" ? "🏛️ Submitting tourist destination..." : "💎 Submitting hidden gem...");
-            await addDoc(collection(db, "hiddenGems"), {
-                placeType: form.placeType,
+            const isTouristDestination = form.placeType === "touristDestination";
+            const targetCollection = isTouristDestination ? "destinations" : "hiddenGems";
+
+            setUploadStatus(isTouristDestination ? "🏛️ Submitting tourist destination..." : "💎 Submitting hidden gem...");
+
+            await addDoc(collection(db, targetCollection), {
+                ...(isTouristDestination ? {} : { placeType: "hiddenGem" }),
                 name: form.name.trim(),
                 city: form.city.trim(),
                 state: form.state.trim(),
@@ -108,7 +112,7 @@ function AddHiddenGem() {
                 createdAt: serverTimestamp(),
             });
 
-            setSuccess(form.placeType === "touristDestination" ? "Tourist destination submitted successfully! It will be reviewed by an admin. 🏛️" : "Hidden gem submitted successfully! It will be reviewed by an admin. 💎");
+            setSuccess(isTouristDestination ? "Tourist destination submitted successfully! It will be reviewed by an admin. 🏛️" : "Hidden gem submitted successfully! It will be reviewed by an admin. 💎");
             setTimeout(() => navigate("/profile"), 1500);
             setForm({ placeType: "hiddenGem", name: "", city: "", state: "", category: "Historical", description: "", whySpecial: "", bestTime: "", mapUrl: "" });
             setPhotos([]);
