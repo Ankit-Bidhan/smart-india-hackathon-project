@@ -23,7 +23,7 @@ function Explore() {
                         id: item.id,
                         ...item.data(),
                     }))
-                    .filter((place) => place.isActive !== false && place.status !== "pending");
+                    .filter((place) => place.status === "approved" && place.isActive !== false);
 
                 setPlaces(destinationList);
             } catch (err) {
@@ -40,7 +40,7 @@ function Explore() {
     const filteredPlaces = places.filter((place) => {
         const searchText = search.toLowerCase().trim();
         const name = String(place.name || "").toLowerCase();
-        const location = String(place.location || "").toLowerCase();
+        const location = String(place.location || `${place.city || ""}, ${place.state || ""}`).toLowerCase();
         const state = String(place.state || "").toLowerCase();
         const crowd = String(place.crowd || "");
 
