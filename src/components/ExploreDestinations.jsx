@@ -11,25 +11,31 @@ function ExploreDestinations() {
     useEffect(() => {
         const loadCommunityDestinations = async () => {
             try {
-                const snapshot = await getDocs(query(collection(db, "hiddenGems"), where("status", "==", "approved")));
-                const dynamicPlaces = snapshot.docs
-                    .map((item) => ({ id: item.id, ...item.data() }))
-                    .filter((item) => item.placeType === "touristDestination")
-                    .map((item) => ({
-                        id: item.id,
-                        firestoreId: item.id,
-                        name: item.name,
-                        location: `${item.city}, ${item.state}`,
-                        image: item.image || item.images?.[0] || "",
-                        description: item.description,
-                        rating: item.rating || "Community",
-                        crowd: item.crowd || "Community",
-                    }));
+                const snapshot = await getDocs(
+                    query(
+                        collection(db, "destinations"),
+                        where("status", "==", "approved")
+                    )
+                );
+
+                const dynamicPlaces = snapshot.docs.map((item) => ({
+                    id: item.id,
+                    firestoreId: item.id,
+                    name: item.data().name,
+                    location: `${item.data().city || ""}${item.data().state ? `, ${item.data().state}` : ""}`,
+                    image: item.data().image || item.data().images?.[0] || "",
+                    description: item.data().description || "",
+                    rating: item.data().rating || "Community",
+                    crowd: item.data().crowd || "Community",
+                }));
+
                 setCommunityPlaces(dynamicPlaces);
             } catch (error) {
                 console.error("Community destinations loading error:", error);
+                setCommunityPlaces([]);
             }
         };
+
         loadCommunityDestinations();
     }, []);
 
@@ -40,7 +46,9 @@ function ExploreDestinations() {
                     <p className="section-label">EXPLORE INDIA</p>
                     <h2>Places worth discovering</h2>
                 </div>
-                <button className="view-all-btn" onClick={() => navigate("/explore")}>View all →</button>
+                <button className="view-all-btn" onClick={() => navigate("/explore")}>
+                    View all →
+                </button>
             </div>
 
             <div className="places-grid">
