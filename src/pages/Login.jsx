@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
     GoogleAuthProvider,
     signInWithPopup,
@@ -9,6 +10,7 @@ import {
 
 import {
     doc,
+    getDoc,
     setDoc,
     serverTimestamp,
 } from "firebase/firestore";
@@ -30,69 +32,157 @@ function Login() {
 
     const [error, setError] = useState("");
 
+
+    // =====================================================
+    // CREATE USER PROFILE ONLY IF IT DOES NOT EXIST
+    // =====================================================
+
     const createUserProfile = async (user) => {
 
+        const userRef = doc(
+            db,
+            "users",
+            user.uid
+        );
+
+        const userSnap = await getDoc(userRef);
+
+
+        // =================================================
+        // IMPORTANT:
+        // If the profile already exists, DO NOT overwrite it.
+        //
+        // This preserves:
+        // admin
+        // localGuide
+        // tourist
+        // =================================================
+
+        if (userSnap.exists()) {
+
+            console.log(
+                "Existing user profile found. Role preserved:",
+                userSnap.data().role
+            );
+
+            return;
+
+        }
+
+
+        // =================================================
+        // ONLY NEW USERS GET THE DEFAULT TOURIST ROLE
+        // =================================================
+
         await setDoc(
-            doc(db, "users", user.uid),
+            userRef,
             {
-                name: user.displayName || "TravelEase User",
-                email: user.email || "",
-                photoURL: user.photoURL || "",
-                role: "tourist",
-                createdAt: serverTimestamp(),
-            },
-            {
-                merge: true,
+                name:
+                    user.displayName ||
+                    "TravelEase User",
+
+                email:
+                    user.email ||
+                    "",
+
+                photoURL:
+                    user.photoURL ||
+                    "",
+
+                role:
+                    "tourist",
+
+                createdAt:
+                    serverTimestamp(),
             }
         );
 
     };
 
-    // =========================
+
+    // =====================================================
     // GOOGLE LOGIN
-    // =========================
+    // =====================================================
 
     const handleGoogleLogin = async () => {
+
         setError("");
+
         setLoading(true);
+
+
         try {
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(
-                auth,
-                provider
+
+            const provider =
+                new GoogleAuthProvider();
+
+
+            const result =
+                await signInWithPopup(
+                    auth,
+                    provider
+                );
+
+
+            // Creates profile only if it does not
+            // already exist.
+            await createUserProfile(
+                result.user
             );
-            await createUserProfile(result.user);
+
+
             window.location.href = "/";
+
+
         } catch (error) {
-            console.error(error);
+
+            console.error(
+                "Google login error:",
+                error
+            );
+
+
             setError(
                 "Google login failed. Please try again."
             );
+
+
         } finally {
+
             setLoading(false);
+
         }
+
     };
 
-    // =========================
+
+    // =====================================================
     // EMAIL LOGIN / SIGNUP
-    // =========================
+    // =====================================================
 
     const handleSubmit = async (event) => {
 
         event.preventDefault();
 
         setError("");
+
         setLoading(true);
 
 
         try {
 
+            // =================================================
+            // SIGN UP
+            // =================================================
+
             if (isSignup) {
 
-                // CREATE ACCOUNT
-
                 if (!name.trim()) {
-                    throw new Error("Please enter your name.");
+
+                    throw new Error(
+                        "Please enter your name."
+                    );
+
                 }
 
 
@@ -102,27 +192,79 @@ function Login() {
                         email,
                         password
                     );
+
+
                 // Save user's name in Firebase Auth
+
                 await updateProfile(
                     userCredential.user,
                     {
-                        displayName: name,
+                        displayName:
+                            name.trim(),
                     }
                 );
+
+
+                // Create Firestore profile.
+                // This is a NEW user, so tourist is correct.
+
                 await createUserProfile(
                     userCredential.user
                 );
 
+            }
 
-            } else {
 
-                // LOGIN
+            // =================================================
+            // LOGIN
+            // =================================================
 
-                await signInWithEmailAndPassword(
-                    auth,
-                    email,
-                    password
+            else {
+
+                const userCredential =
+                    await signInWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
+
+
+                // =================================================
+                // IMPORTANT:
+                //
+                // We DO NOT write "tourist" here.
+                //
+                // The existing Firestore role is preserved.
+                // =================================================
+
+                const userRef = doc(
+                    db,
+                    "users",
+                    userCredential.user.uid
                 );
+
+
+                const userSnap =
+                    await getDoc(userRef);
+
+
+                if (userSnap.exists()) {
+
+                    console.log(
+                        "Logged in with role:",
+                        userSnap.data().role
+                    );
+
+                } else {
+
+                    // Safety fallback for an old account
+                    // that does not have a Firestore profile.
+
+                    await createUserProfile(
+                        userCredential.user
+                    );
+
+                }
 
             }
 
@@ -132,38 +274,66 @@ function Login() {
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "Login error:",
+                error
+            );
+
 
             switch (error.code) {
 
                 case "auth/email-already-in-use":
+
                     setError(
                         "This email is already registered. Try logging in."
                     );
+
                     break;
 
+
                 case "auth/invalid-email":
+
                     setError(
                         "Please enter a valid email address."
                     );
+
                     break;
 
+
                 case "auth/weak-password":
+
                     setError(
                         "Password should be at least 6 characters."
                     );
+
                     break;
 
+
                 case "auth/invalid-credential":
+
                     setError(
                         "Incorrect email or password."
                     );
+
                     break;
 
-                default:
+
+                case "auth/popup-closed-by-user":
+
                     setError(
-                        error.message || "Something went wrong."
+                        "Google login was cancelled."
                     );
+
+                    break;
+
+
+                default:
+
+                    setError(
+                        error.message ||
+                        "Something went wrong."
+                    );
+
             }
 
         } finally {
@@ -171,13 +341,20 @@ function Login() {
             setLoading(false);
 
         }
+
     };
 
 
+    // =====================================================
+    // UI
+    // =====================================================
+
     return (
+
         <main className="login-page">
 
             <div className="login-card">
+
 
                 {/* HEADER */}
 
@@ -192,15 +369,19 @@ function Login() {
                     </p>
 
                     <h1>
+
                         {isSignup
                             ? "Create your account"
                             : "Welcome back"}
+
                     </h1>
 
                     <p>
+
                         {isSignup
                             ? "Join TravelEase and discover smarter ways to travel."
                             : "Sign in to continue your travel journey."}
+
                     </p>
 
                 </div>
@@ -209,9 +390,13 @@ function Login() {
                 {/* ERROR */}
 
                 {error && (
+
                     <div className="login-error">
+
                         ⚠️ {error}
+
                     </div>
+
                 )}
 
 
@@ -257,6 +442,9 @@ function Login() {
                     onSubmit={handleSubmit}
                 >
 
+
+                    {/* NAME */}
+
                     {isSignup && (
 
                         <div className="form-group">
@@ -269,7 +457,9 @@ function Login() {
                                 type="text"
                                 value={name}
                                 onChange={(event) =>
-                                    setName(event.target.value)
+                                    setName(
+                                        event.target.value
+                                    )
                                 }
                                 placeholder="Enter your name"
                                 disabled={loading}
@@ -279,6 +469,8 @@ function Login() {
 
                     )}
 
+
+                    {/* EMAIL */}
 
                     <div className="form-group">
 
@@ -290,7 +482,9 @@ function Login() {
                             type="email"
                             value={email}
                             onChange={(event) =>
-                                setEmail(event.target.value)
+                                setEmail(
+                                    event.target.value
+                                )
                             }
                             placeholder="you@example.com"
                             required
@@ -299,6 +493,8 @@ function Login() {
 
                     </div>
 
+
+                    {/* PASSWORD */}
 
                     <div className="form-group">
 
@@ -310,7 +506,9 @@ function Login() {
                             type="password"
                             value={password}
                             onChange={(event) =>
-                                setPassword(event.target.value)
+                                setPassword(
+                                    event.target.value
+                                )
                             }
                             placeholder="Enter your password"
                             required
@@ -320,6 +518,8 @@ function Login() {
                     </div>
 
 
+                    {/* SUBMIT */}
+
                     <button
                         type="submit"
                         className="login-submit"
@@ -327,7 +527,9 @@ function Login() {
                     >
 
                         {loading
+
                             ? "Please wait..."
+
                             : isSignup
                                 ? "Create Account"
                                 : "Login"}
@@ -345,16 +547,24 @@ function Login() {
                         ? "Already have an account?"
                         : "Don't have an account?"}
 
+
                     <button
                         type="button"
                         onClick={() => {
-                            setIsSignup(!isSignup);
+
+                            setIsSignup(
+                                !isSignup
+                            );
+
                             setError("");
+
                         }}
                     >
+
                         {isSignup
                             ? "Login"
                             : "Create Account"}
+
                     </button>
 
                 </div>
@@ -362,7 +572,9 @@ function Login() {
             </div>
 
         </main>
+
     );
+
 }
 
 

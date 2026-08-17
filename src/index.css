@@ -3757,498 +3757,309 @@ a {
     }
 
 }
-.contributions-section {
-    margin-top: 32px;
-}
-
-.contributions-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-}
-
-.contributions-header h2 {
-    margin: 5px 0;
-}
-
-.contribution-count {
-    min-width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #eef7f5;
-    font-weight: 700;
-}
-
-.contributions-list {
-    display: grid;
-    gap: 18px;
-}
-
-.contribution-card {
-    display: flex;
-    gap: 18px;
-    padding: 16px;
-    border: 1px solid #dce7e5;
-    border-radius: 18px;
-    background: white;
-}
-
-.contribution-image {
-    width: 190px;
-    min-width: 190px;
-    height: 140px;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.contribution-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.contribution-no-image {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 45px;
-    background: #eef7f5;
-}
-
-.contribution-content {
-    flex: 1;
-}
-
-.contribution-content h3 {
-    margin: 8px 0;
-}
-
-.contribution-status {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.contribution-status.pending {
-    background: #fff4d6;
-}
-
-.contribution-status.approved {
-    background: #e5f7ed;
-}
-
-.contribution-status.rejected {
-    background: #fde8e8;
-}
-
-@media (max-width: 700px) {
-
-    .contribution-card {
-        flex-direction: column;
-    }
-
-    .contribution-image {
-        width: 100%;
-        height: 200px;
-    }
-
-}
-.gem-no-image {
-    width: 100%;
-    height: 100%;
-    min-height: 240px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 60px;
-    background: linear-gradient(
-        135deg,
-        #eef7f5,
-        #dcefeb
-    );
-}
-.gem-image {
-    position: relative;
-    height: 240px;
-    overflow: hidden;
-}
-
-.gem-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.upload-status {
-    margin-bottom: 12px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: #eef7f5;
-    font-weight: 600;
-    text-align: center;
-}
-/* =========================
-   HIDDEN GEM DETAILS PAGE
-========================= */
-
-.gem-details-page {
-    min-height: calc(100vh - 72px);
-    background: #f7faf9;
-    padding: 40px 6% 90px;
-}
-
-.gem-details-container {
-    width: min(1100px, 100%);
-    margin: 0 auto;
-}
-
-.gem-details-back {
-    border: none;
-    background: transparent;
-    color: #13795b;
-    font-weight: 700;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
-.gem-details-hero {
-    height: 500px;
-    position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    background: #dcefeb;
-}
-
-.gem-details-hero img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.gem-details-no-image {
-    width: 100%;
-    height: 100%;
-    min-height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 70px;
-    background: #eef7f3;
-}
-
-.gem-details-hero-overlay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 55px 45px 40px;
-    color: white;
-    background: linear-gradient(
-        transparent,
-        rgba(0, 0, 0, 0.78)
-    );
-}
-
-.gem-details-hero-overlay span {
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.gem-details-hero-overlay h1 {
-    font-size: clamp(40px, 6vw, 65px);
-    margin: 8px 0;
-}
-
-.gem-details-hero-overlay p {
-    margin: 0;
-}
-
-.gem-details-layout {
-    display: grid;
-    grid-template-columns: 1.5fr 0.7fr;
-    gap: 35px;
-    margin-top: 40px;
-    align-items: start;
-}
-
-.gem-details-main {
-    background: white;
-    padding: 32px;
-    border: 1px solid #dfe8e4;
-    border-radius: 20px;
-}
-
-.gem-details-category {
-    color: #13795b;
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.gem-details-main h2 {
-    font-size: 30px;
-    margin: 22px 0 12px;
-}
-
-.gem-details-description {
-    color: #61706b;
-    line-height: 1.8;
-    font-size: 15px;
-}
-
-.gem-details-card {
-    background: white;
-    border: 1px solid #dfe8e4;
-    border-radius: 20px;
-    padding: 24px;
-    position: sticky;
-    top: 95px;
-}
-
-.gem-detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 15px 0;
-    border-bottom: 1px solid #edf1ef;
-}
-
-.gem-detail-item span {
-    color: #71807b;
-    font-size: 12px;
-}
-
-.gem-detail-item strong {
-    font-size: 14px;
-}
-
-.gem-view-map-btn {
-    width: 100%;
-    margin-top: 20px;
-    padding: 13px;
-    border: none;
-    border-radius: 9px;
-    background: #13795b;
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.gem-details-gallery {
-    margin-top: 40px;
-}
-
-.gem-details-photo-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.gem-details-photo-grid img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    border-radius: 14px;
-}
-
-.gem-details-loading,
-.gem-details-error {
-    min-height: 60vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 12px;
-}
-
-.gem-details-icon {
-    font-size: 50px;
-}
-
-.gem-details-error p {
-    color: #71807b;
-}
-
-.gem-details-back-btn {
-    border: none;
-    border-radius: 9px;
-    padding: 12px 18px;
-    background: #13795b;
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-@media (max-width: 850px) {
-
-    .gem-details-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .gem-details-card {
-        position: static;
-    }
-
-}
-
-@media (max-width: 600px) {
-
-    .gem-details-page {
-        padding: 25px 5% 60px;
-    }
-
-    .gem-details-hero {
-        height: 380px;
-        border-radius: 18px;
-    }
-
-    .gem-details-hero-overlay {
-        padding: 35px 22px 25px;
-    }
-
-    .gem-details-hero-overlay h1 {
-        font-size: 38px;
-    }
-
-    .gem-details-main {
-        padding: 22px;
-    }
-
-    .gem-details-main h2 {
-        font-size: 26px;
-    }
-
-    .gem-details-photo-grid {
-        grid-template-columns: 1fr;
-    }
-
-}
-.edit-gem-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(20, 30, 27, 0.55);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-
-    z-index: 3000;
-}
-
-.edit-gem-modal {
-    position: relative;
-
-    width: min(520px, 100%);
-
+/* =========================================================
+   CLEAN GUIDE APPLICATION FORM
+========================================================= */
+
+.guide-modal {
+    width: min(760px, 92vw);
     max-height: 90vh;
     overflow-y: auto;
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 28px;
-
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+    padding: 42px 46px;
+    box-sizing: border-box;
 }
 
-.edit-gem-close {
-    position: absolute;
-
-    top: 14px;
-    right: 14px;
-
-    width: 34px;
-    height: 34px;
-
-    border: none;
-    border-radius: 50%;
-
-    background: #f1f5f3;
-
-    cursor: pointer;
+/* Better scrollbar */
+.guide-modal::-webkit-scrollbar {
+    width: 7px;
 }
 
-.edit-gem-modal h2 {
-    margin: 5px 0 8px;
+.guide-modal::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.edit-gem-modal > p {
-    color: #71807b;
+.guide-modal::-webkit-scrollbar-thumb {
+    background: #cbd5d1;
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.guide-modal .modal-icon {
+    margin-bottom: 12px;
+    font-size: 34px;
+}
+
+.guide-modal h2 {
+    margin: 0 0 10px;
+    font-size: 32px;
+    line-height: 1.2;
+}
+
+.guide-modal > p {
+    margin: 0 0 30px;
+    color: #687572;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.guide-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.guide-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.guide-form-group label,
+.guide-photo-section > label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #34423e;
+}
+
+.guide-form-group input,
+.guide-form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d5dedb;
+    border-radius: 10px;
+    background: #fff;
+    color: #25312e;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 13px 14px;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.guide-form-group input {
+    height: 48px;
+}
+
+.guide-form-group textarea {
+    min-height: 120px;
+    resize: vertical;
     line-height: 1.5;
 }
 
-.existing-gem-photos {
+.guide-form-group input::placeholder,
+.guide-form-group textarea::placeholder {
+    color: #9aa6a2;
+}
+
+.guide-form-group input:focus,
+.guide-form-group textarea:focus {
+    border-color: #12805f;
+    box-shadow: 0 0 0 3px rgba(18, 128, 95, 0.10);
+}
+
+.guide-form-group small {
+    color: #7c8985;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   CITY + STATE
+========================================================= */
+
+.guide-form-row {
     display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
 
-    grid-template-columns:
-        repeat(auto-fill, minmax(100px, 1fr));
 
+/* =========================================================
+   PHOTO UPLOAD
+========================================================= */
+
+.guide-photo-section {
+    display: flex;
+    flex-direction: column;
     gap: 10px;
-
-    margin: 20px 0;
 }
 
-.existing-gem-photos img {
+.guide-photo-upload {
     width: 100%;
-    height: 100px;
+}
 
+.guide-photo-placeholder {
+    min-height: 150px;
+    border: 1.5px dashed #b8c9c3;
+    border-radius: 12px;
+    background: #f8fbfa;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.guide-photo-placeholder:hover {
+    border-color: #12805f;
+    background: #f2f9f6;
+}
+
+.guide-photo-placeholder span {
+    font-size: 30px;
+}
+
+.guide-photo-placeholder strong {
+    color: #34423e;
+    font-size: 14px;
+}
+
+.guide-photo-placeholder small {
+    color: #899590;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   PHOTO PREVIEW
+========================================================= */
+
+.guide-photo-preview {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.guide-photo-preview img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-
-    border-radius: 10px;
+    border-radius: 14px;
+    border: 1px solid #d5dedb;
 }
 
-.edit-photo-label {
-    display: block;
-
-    margin-top: 18px;
-    margin-bottom: 8px;
-
-    font-weight: 700;
-    font-size: 13px;
+.remove-photo-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: #53605c;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    font-size: 14px;
 }
 
-.edit-gem-modal input[type="file"] {
+.remove-photo-btn:hover {
+    background: #f3f5f4;
+}
+
+
+/* =========================================================
+   CHARACTER COUNT
+========================================================= */
+
+.character-count {
+    align-self: flex-end;
+    margin-top: -3px;
+    color: #8a9692;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+.guide-submit-btn {
     width: 100%;
-    box-sizing: border-box;
-
-    padding: 12px;
-
-    border: 1px solid #d8e2de;
-    border-radius: 9px;
+    min-height: 50px;
+    border: none;
+    border-radius: 10px;
+    background: #12805f;
+    color: white;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+    margin-top: 4px;
 }
 
-.edit-gem-modal small {
-    display: block;
-
-    margin-top: 7px;
-
-    color: #71807b;
+.guide-submit-btn:hover:not(:disabled) {
+    background: #0f7053;
+    box-shadow: 0 5px 14px rgba(18, 128, 95, 0.18);
 }
 
-.selected-photo-count {
-    margin-top: 12px;
+.guide-submit-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
 
-    padding: 10px;
+.guide-submit-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
 
-    border-radius: 9px;
 
-    background: #eef8f4;
+/* =========================================================
+   FORM NOTE
+========================================================= */
 
-    color: #13795b !important;
+.guide-form-note {
+    margin: -5px 0 0;
+    text-align: center;
+    color: #7b8783;
+    font-size: 12px;
+    line-height: 1.5;
+}
 
-    font-weight: 600;
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .guide-modal {
+        width: 94vw;
+        padding: 30px 22px;
+        max-height: 92vh;
+    }
+
+    .guide-modal h2 {
+        font-size: 25px;
+    }
+
+    .guide-form-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .guide-modal > p {
+        font-size: 14px;
+    }
+
 }
