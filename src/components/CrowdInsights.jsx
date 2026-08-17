@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 import { auth, db } from "../firebase";
@@ -25,20 +25,16 @@ function CrowdInsights() {
             try {
                 setLoadingPlaces(true);
 
-                // Tourist destinations are now stored in the same community
-                // collection as hidden gems, with placeType controlling where
-                // they appear. Only approved tourist destinations belong here.
-                const approvedTouristQuery = query(
-                    collection(db, "hiddenGems"),
-                    where("status", "==", "approved"),
-                    where("placeType", "==", "touristDestination")
-                );
-                const snapshot = await getDocs(approvedTouristQuery);
+                // Tourist destinations now live in their own collection.
+                // Only approved destinations should appear in Crowd Insights.
+                const snapshot = await getDocs(collection(db, "destinations"));
 
-                const destinationList = snapshot.docs.map((item) => ({
-                    id: item.id,
-                    ...item.data(),
-                }));
+                const destinationList = snapshot.docs
+                    .map((item) => ({
+                        id: item.id,
+                        ...item.data(),
+                    }))
+                    .filter((place) => place.status === "approved");
 
                 setPlaces(destinationList);
                 setMessage("");
