@@ -49,15 +49,22 @@ Setup commands and environment-variable names should match the current repositor
 
 ## 🖼️ Screenshots / Demo
 
-_Add current application screenshots or a verified demo link here._
+<img width="1342" height="679" alt="image" src="https://github.com/user-attachments/assets/3202f0f3-d628-43eb-b838-e07fcca905cd" />
+
+<img width="1360" height="682" alt="image" src="https://github.com/user-attachments/assets/af769bdd-a000-4677-b508-605e12959d95" />
+
+<img width="1352" height="683" alt="image" src="https://github.com/user-attachments/assets/497513f8-f418-4e34-80e3-83ac393c4899" />
 
 ## 🧭 Project Status
 
-A student hackathon project. Refer to the current source code for the implemented state of each feature; planned or partially completed functionality should not be treated as production-ready.
+A student hackathon project. Refer to the current source code for the implemented state of each feature; planned or partially completed functionality should not be treated as production-ready. 
+
+**Live-Demo**
+https://travel-ease2026.netlify.app/
 
 ## 👥 Team
 
-_Add the participating team members and their contributions here._
+Our 6 member team Worked on it :- Me(Ankit Bidhan), Dhruv Verma, Anupreet Dhiman, Natasha, Deendyal Mandar, Saksham Gautam
 
 ## 👨‍💻 Maintainer
 
